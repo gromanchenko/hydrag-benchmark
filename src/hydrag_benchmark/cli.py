@@ -203,10 +203,6 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
-if __name__ == "__main__":
-    sys.exit(main())
-
-
 def _cmd_prefill(args: argparse.Namespace) -> int:
     from .runner import prefill_doc2query
 
@@ -295,3 +291,7 @@ def _cmd_beir(args: argparse.Namespace) -> int:
         ollama_host=args.ollama_host,
     )
     return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
