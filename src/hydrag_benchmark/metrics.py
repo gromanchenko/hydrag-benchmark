@@ -23,7 +23,7 @@ def recall_at_1(retrieved: list[str], relevant_phrases: list[str]) -> float:
 def recall_at_k(retrieved: list[str], relevant_phrases: list[str]) -> float:
     """Fraction of relevant phrases found in any of the top-k chunks."""
     if not relevant_phrases:
-        return 1.0
+        return 0.0
     found = sum(
         1
         for phrase in relevant_phrases
@@ -46,12 +46,13 @@ def chunk_overlap(retrieved: list[str], relevant_phrases: list[str]) -> float:
     if not relevant_phrases or not retrieved:
         return 0.0
     all_text = " ".join(_normalize(c) for c in retrieved)
+    all_tokens = set(all_text.split())
     scores: list[float] = []
     for phrase in relevant_phrases:
         tokens = set(_normalize(phrase).split())
         if not tokens:
             continue
-        found = sum(1 for t in tokens if t in all_text)
+        found = sum(1 for t in tokens if t in all_tokens)
         scores.append(found / len(tokens))
     return round(sum(scores) / len(scores), 3) if scores else 0.0
 

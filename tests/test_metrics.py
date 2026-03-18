@@ -39,7 +39,7 @@ class TestRecallAtK:
         assert recall_at_k(["unrelated"], ["fibonacci", "numbers"]) == 0.0
 
     def test_empty_phrases(self) -> None:
-        assert recall_at_k(["anything"], []) == 1.0
+        assert recall_at_k(["anything"], []) == 0.0
 
 
 class TestMRR:

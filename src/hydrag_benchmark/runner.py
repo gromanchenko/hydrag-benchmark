@@ -108,7 +108,8 @@ def _build_kb(
     for fp in files:
         try:
             text = fp.read_text(encoding="utf-8", errors="ignore")
-        except Exception:
+        except Exception as exc:
+            logger.warning("Failed to read %s: %s", fp, exc)
             continue
         if not text.strip():
             continue
@@ -347,7 +348,8 @@ def _chunk_corpus(corpus_dir: Path) -> list["Chunk"]:
     for fp in files:
         try:
             text = fp.read_text(encoding="utf-8", errors="ignore")
-        except Exception:
+        except Exception as exc:
+            logger.warning("Failed to read %s: %s", fp, exc)
             continue
         if not text.strip():
             continue

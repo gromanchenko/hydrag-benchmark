@@ -103,9 +103,16 @@ def download_beir_dataset(
     # Extract — BEIR datasets come as zip files
     logger.info("Extracting %s", archive_path)
     import zipfile
+    import sys
 
     with zipfile.ZipFile(archive_path) as zf:
-        zf.extractall(cache)
+        for member in zf.namelist():
+            if ".." in member or member.startswith("/"):
+                raise ValueError(f"Security: invalid zip path {member}")
+        if sys.version_info >= (3, 12):
+            zf.extractall(cache, filter="data")
+        else:
+            zf.extractall(cache)
 
     # Verify extraction
     if not (dataset_dir / "corpus.jsonl").exists():

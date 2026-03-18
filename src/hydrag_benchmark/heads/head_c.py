@@ -61,8 +61,8 @@ class HeadC:
             # Look up pre-computed embedding from Head B
             chunk_emb = self._head_b.get_chunk_embedding(candidate.chunk.chunk_id)
             if chunk_emb is None:
-                # No embedding available — use structural score only
-                combined = self._alpha * structural_norm
+                # No embedding available — use normalized structural score as fallback
+                combined = structural_norm
             else:
                 cos_sim = cosine_similarity(query_emb, chunk_emb)
                 # Clamp to [0, 1] for combination

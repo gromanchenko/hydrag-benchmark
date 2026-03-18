@@ -267,28 +267,29 @@ def run_beir_benchmark(
 
         # Index
         t0 = time.monotonic()
-        head.build_index(chunks)
-        index_time = time.monotonic() - t0
-        logger.info("Indexed %d chunks in %.1fs (%s)", n_corpus, index_time, head_name)
+        try:
+            head.build_index(chunks)
+            index_time = time.monotonic() - t0
+            logger.info("Indexed %d chunks in %.1fs (%s)", n_corpus, index_time, head_name)
 
-        # Evaluate
-        head_result = _evaluate_head(
-            head, queries, qrels, chunk_to_doc, dataset, n_corpus,
-        )
-        result.heads.append(head_result)
+            # Evaluate
+            head_result = _evaluate_head(
+                head, queries, qrels, chunk_to_doc, dataset, n_corpus,
+            )
+            result.heads.append(head_result)
 
-        # Summary
-        logger.info(
-            "%s — nDCG@10: %.4f  Recall@10: %.4f  MRR@10: %.4f  MAP@10: %.4f  Avg latency: %.2fms",
-            head_name,
-            head_result.avg_ndcg_at_10,
-            head_result.avg_recall_at_10,
-            head_result.avg_mrr_at_10,
-            head_result.avg_map_at_10,
-            head_result.avg_latency_ms,
-        )
-
-        head.close()
+            # Summary
+            logger.info(
+                "%s — nDCG@10: %.4f  Recall@10: %.4f  MRR@10: %.4f  MAP@10: %.4f  Avg latency: %.2fms",
+                head_name,
+                head_result.avg_ndcg_at_10,
+                head_result.avg_recall_at_10,
+                head_result.avg_mrr_at_10,
+                head_result.avg_map_at_10,
+                head_result.avg_latency_ms,
+            )
+        finally:
+            head.close()
 
     # Write results
     out_path = output_dir / f"beir-{dataset}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}.json"

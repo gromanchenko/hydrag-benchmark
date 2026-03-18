@@ -48,33 +48,16 @@ class HeadD:
         count = self._store.index_documents(indexed_chunks)
         logger.info("Head D indexed %d chunks (FTS5 raw)", count)
 
-    def _fts_search_with_ids(self, query: str, n_results: int) -> list[tuple[str, str]]:
-        """FTS5 search returning (chunk_id, raw_content) pairs with BM25 ranking."""
-        safe_query = self._store._escape_fts_query(query)
-        if not safe_query:
-            return []
-        try:
-            rows = self._store._conn.execute(
-                """SELECT c.chunk_id, c.raw_content
-                   FROM chunks_fts f
-                   JOIN chunks c ON c.rowid = f.rowid
-                   WHERE chunks_fts MATCH ?
-                   ORDER BY bm25(chunks_fts, 1.0, 1.0, 0.8, 1.4)
-                   LIMIT ?""",
-                (safe_query, n_results),
-            ).fetchall()
-            return [(row["chunk_id"], row["raw_content"]) for row in rows]
-        except Exception:
-            logger.debug("FTS query failed: %s", safe_query, exc_info=True)
-            return []
-
     def retrieve(self, query: str, n_results: int = 10) -> list[ScoredChunk]:
-        """FTS5 BM25 retrieval."""
-        hits = self._fts_search_with_ids(query, n_results)
+        """FTS5 BM25 retrieval via standard adapter interface."""
+        texts = self._store.keyword_search(query, n_results)
         results: list[ScoredChunk] = []
-        for rank, (chunk_id, _text) in enumerate(hits):
+        for rank, text in enumerate(texts):
+            chunk_id = self._text_to_id.get(text)
+            if not chunk_id:
+                continue
             chunk = self._chunks.get(chunk_id)
-            if chunk is None:
+            if not chunk:
                 continue
             results.append(ScoredChunk(
                 chunk=chunk,

@@ -285,12 +285,15 @@ class HeadA:
             scored.append((chunk_id, final_score))
 
         scored.sort(key=lambda x: x[1], reverse=True)
+        max_score = scored[0][1] if scored else 1.0
+        if max_score == 0.0:
+            max_score = 1.0
 
         results: list[ScoredChunk] = []
         for chunk_id, score in scored[:n_results]:
             results.append(ScoredChunk(
                 chunk=self._chunks[chunk_id],
-                score=score,
+                score=score / max_score,
                 head_origin="head_a",
             ))
         return results

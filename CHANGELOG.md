@@ -5,6 +5,23 @@ All notable changes to `hydrag-benchmark` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-03-18
+
+### Fixed
+
+- **ZIP path traversal** (C1): `beir_loader.py` validates `namelist()` members for `..` and `/` prefixes; Python 3.12+ uses `filter="data"` on `extractall()`
+- **Recall metric** (C2): `recall_at_k` returns `0.0` for empty `relevant_phrases` (was `1.0`, vacuously inflated)
+- **Chunk overlap** (C3): `chunk_overlap` uses token set intersection instead of substring `in` matching (false-positived on partial tokens)
+- **Head lifecycle leak** (C4): `beir_runner.py` wraps head lifecycle in `try/finally` to guarantee `head.close()` on exception
+- **Head D private API** (H2): `head_d.py` rewritten to use `keyword_search()` public API + `text_to_id` map (was accessing `_conn` and `_escape_fts_query`)
+- **Silent file errors** (H3): `runner.py` bare `except Exception: continue` now logs `logger.warning` with filename and exception
+- **Head C fallback** (M4): Embedding-absent chunks scored at full `structural_norm` instead of `α * structural_norm`
+- **Head A normalization** (M5): Raw scores normalized to `[0, 1]` via max-score division to prevent RRF fusion dominance
+
+### Changed
+
+- Package version bumped to `0.5.1`.
+
 ## [0.5.0] - 2026-03-18
 
 ### Changed
