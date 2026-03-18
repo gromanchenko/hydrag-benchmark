@@ -1,0 +1,192 @@
+name: k8s-kep
+version: "1.0"
+seed: 42
+description: |
+  Kubernetes Enhancement Proposal benchmark suite.
+  Tests recall on the kubernetes/enhancements keps/ corpus.
+  Baseline (raw code vocab match): recall@1 ≈ 0.067, recall@5 ≈ 0.20.
+  Phase 1 targets: recall@1 ≥ 0.30, recall@5 ≥ 0.60.
+  All relevant_phrases are identifiers / terms present in KEP markdown files.
+
+environment:
+  strategy: multihead
+  n_results: 5
+
+cases:
+  - id: k8s-001
+    query: "How does Kubernetes handle pod failure policies for retrying failed job pods?"
+    relevant_phrases:
+      - "failurePolicy"
+      - "PodFailurePolicy"
+      - "FailureReason"
+      - "backoffLimitPerIndex"
+    tags: [jobs, failures, phase1]
+
+  - id: k8s-002
+    query: "What is the proposal for native sidecar container support in Kubernetes?"
+    relevant_phrases:
+      - "sidecarContainer"
+      - "initContainer"
+      - "restartPolicy"
+      - "SidecarContainers"
+    tags: [node, containers, phase1]
+
+  - id: k8s-003
+    query: "How can admission controllers gate pod scheduling before the scheduler binds a pod?"
+    relevant_phrases:
+      - "schedulingGates"
+      - "PodSchedulingGates"
+      - "SchedulingGate"
+    tags: [scheduling, phase1]
+
+  - id: k8s-004
+    query: "How to define success criteria when only some pods need to complete in an indexed Job?"
+    relevant_phrases:
+      - "successPolicy"
+      - "JobSuccessPolicy"
+      - "succeededIndexes"
+      - "SuccessCriteria"
+    tags: [jobs, phase1]
+
+  - id: k8s-005
+    query: "How do Kubernetes controllers avoid split-brain using leader election?"
+    relevant_phrases:
+      - "LeaderElection"
+      - "leaseDuration"
+      - "renewDeadline"
+      - "LeaseLock"
+    tags: [controllers, ha, phase1]
+
+  - id: k8s-006
+    query: "How to write custom admission validation rules in Kubernetes without deploying a webhook?"
+    relevant_phrases:
+      - "ValidatingAdmissionPolicy"
+      - "ValidationRule"
+      - "cel"
+      - "expression"
+    tags: [admission, cel, phase1]
+
+  - id: k8s-007
+    query: "How to configure scale-down cooldown period and stabilization window in Horizontal Pod Autoscaler?"
+    relevant_phrases:
+      - "scaleDown"
+      - "stabilizationWindowSeconds"
+      - "ScalingPolicy"
+      - "HorizontalPodAutoscaler"
+    tags: [autoscaling, phase1]
+
+  - id: k8s-008
+    query: "How to attach a temporary debug container to an already running pod in Kubernetes?"
+    relevant_phrases:
+      - "ephemeralContainers"
+      - "EphemeralContainer"
+      - "targetContainerName"
+    tags: [debug, node, phase1]
+
+  - id: k8s-009
+    query: "How to spread pods evenly across availability zones using topology constraints?"
+    relevant_phrases:
+      - "topologySpreadConstraints"
+      - "maxSkew"
+      - "topologyKey"
+      - "whenUnsatisfiable"
+    tags: [scheduling, topology, phase1]
+
+  - id: k8s-010
+    query: "What security profiles restrict privileged container capabilities in Kubernetes pod security?"
+    relevant_phrases:
+      - "PodSecurity"
+      - "restricted"
+      - "baseline"
+      - "enforce"
+    tags: [security, phase1]
+
+  - id: k8s-011
+    query: "How does server-side apply handle field ownership and conflict resolution between managers?"
+    relevant_phrases:
+      - "server-side apply"
+      - "managedFields"
+      - "fieldManager"
+      - "FieldOwnership"
+    tags: [api, apply, phase1]
+
+  - id: k8s-012
+    query: "How to retry specific failed pod indexes in a parallel indexed Kubernetes Job?"
+    relevant_phrases:
+      - "IndexedJob"
+      - "backoffLimitPerIndex"
+      - "completionMode"
+      - "Indexed"
+    tags: [jobs, phase1]
+
+  - id: k8s-013
+    query: "How to guarantee minimum available pods during voluntary disruptions like node maintenance?"
+    relevant_phrases:
+      - "PodDisruptionBudget"
+      - "minAvailable"
+      - "maxUnavailable"
+      - "disruption"
+    tags: [availability, phase1]
+
+  - id: k8s-014
+    query: "How does dynamic resource allocation assign device resources to pods using structured parameters?"
+    relevant_phrases:
+      - "ResourceClaim"
+      - "DeviceClass"
+      - "structured parameters"
+      - "DRA"
+    tags: [resources, dra, phase1]
+
+  - id: k8s-015
+    query: "How does Kubernetes manage NUMA memory allocation for latency-sensitive containerized workloads?"
+    relevant_phrases:
+      - "MemoryManager"
+      - "NUMA"
+      - "memoryManagerPolicy"
+      - "topologyManager"
+    tags: [node, numa, phase1]
+
+  - id: k8s-016
+    query: "What information is captured in Kubernetes audit logs when an API request is processed?"
+    relevant_phrases:
+      - "AuditPolicy"
+      - "RequestReceived"
+      - "ResponseComplete"
+      - "audit"
+    tags: [audit, security, phase1]
+
+  - id: k8s-017
+    query: "How to mount temporary scratch storage that is automatically cleaned up when a pod terminates?"
+    relevant_phrases:
+      - "ephemeral"
+      - "volumeClaimTemplate"
+      - "EphemeralVolumeSource"
+      - "generic ephemeral"
+    tags: [storage, volumes, phase1]
+
+  - id: k8s-018
+    query: "How does the CRD structural schema validation enforce type constraints on custom resources?"
+    relevant_phrases:
+      - "structural schema"
+      - "x-kubernetes-int-or-string"
+      - "JSONSchemaProps"
+      - "pruning"
+    tags: [crds, validation, phase1]
+
+  - id: k8s-019
+    query: "How to update pods in a StatefulSet without waiting for ordered sequential termination?"
+    relevant_phrases:
+      - "podManagementPolicy"
+      - "Parallel"
+      - "StatefulSet"
+      - "updateStrategy"
+    tags: [statefulset, phase1]
+
+  - id: k8s-020
+    query: "How does Kubernetes track and limit resource usage with ResourceQuota per namespace?"
+    relevant_phrases:
+      - "ResourceQuota"
+      - "hard"
+      - "used"
+      - "scopeSelector"
+    tags: [resources, quota, phase1]

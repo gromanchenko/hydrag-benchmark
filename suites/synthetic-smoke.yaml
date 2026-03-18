@@ -1,0 +1,50 @@
+name: synthetic-smoke
+version: "1.0"
+seed: 42
+description: |
+  Minimal synthetic benchmark suite for smoke tests and CI.
+  Uses trivially matchable queries against a known corpus.
+
+environment:
+  strategy: hydrag
+  n_results: 5
+
+cases:
+  - id: syn-001
+    query: "function that calculates fibonacci numbers"
+    relevant_phrases:
+      - "fibonacci"
+      - "def fib"
+    tags: [synthetic, function]
+
+  - id: syn-002
+    query: "how to parse YAML configuration files"
+    relevant_phrases:
+      - "yaml"
+      - "parse"
+      - "config"
+    tags: [synthetic, config]
+
+  - id: syn-003
+    query: "HTTP request handler implementation"
+    relevant_phrases:
+      - "request"
+      - "handler"
+      - "http"
+    tags: [synthetic, http]
+
+  - id: syn-004
+    query: "database connection pool setup"
+    relevant_phrases:
+      - "connection"
+      - "pool"
+      - "database"
+    tags: [synthetic, database]
+
+  - id: syn-005
+    query: "logging configuration with rotating file handler"
+    relevant_phrases:
+      - "logging"
+      - "rotating"
+      - "handler"
+    tags: [synthetic, logging]

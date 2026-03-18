@@ -1,0 +1,194 @@
+name: cpython-stdlib
+version: "1.0"
+seed: 42
+description: |
+  CPython standard library benchmark suite.
+  Tests recall on the python/cpython Lib/ corpus.
+  Baseline (raw code vocab match): recall@10 ≈ 0.40.
+  Phase 1 target: recall@10 ≥ 0.70.
+  All relevant_phrases are Python identifiers present in Lib/ source files.
+
+environment:
+  strategy: multihead
+  n_results: 10
+
+cases:
+  - id: cp-001
+    query: "How does Python's asyncio event loop handle I/O readiness and schedule callbacks?"
+    relevant_phrases:
+      - "_run_once"
+      - "_process_events"
+      - "BaseEventLoop"
+      - "selectors"
+    tags: [asyncio, io, phase1]
+
+  - id: cp-002
+    query: "How to run multiple functions concurrently using thread pool workers in Python?"
+    relevant_phrases:
+      - "ThreadPoolExecutor"
+      - "_max_workers"
+      - "_work_queue"
+      - "submit"
+    tags: [threading, concurrent, phase1]
+
+  - id: cp-003
+    query: "How does Python's subprocess module read stdout and stderr from a child process simultaneously?"
+    relevant_phrases:
+      - "Popen"
+      - "communicate"
+      - "PIPE"
+      - "_communicate_with_poll"
+    tags: [subprocess, io, phase1]
+
+  - id: cp-004
+    query: "How to set a non-blocking timeout on a TCP socket connection in Python?"
+    relevant_phrases:
+      - "settimeout"
+      - "setblocking"
+      - "AF_INET"
+      - "SOCK_STREAM"
+    tags: [socket, networking, phase1]
+
+  - id: cp-005
+    query: "How to configure Python logging with a file rotating by size and keeping multiple backups?"
+    relevant_phrases:
+      - "RotatingFileHandler"
+      - "maxBytes"
+      - "backupCount"
+      - "basicConfig"
+    tags: [logging, phase1]
+
+  - id: cp-006
+    query: "How are Python context variables isolated between independent concurrent coroutines?"
+    relevant_phrases:
+      - "ContextVar"
+      - "copy_context"
+      - "Token"
+      - "contextvars"
+    tags: [asyncio, context, phase1]
+
+  - id: cp-007
+    query: "How to receive a callback notification when a Python object is garbage collected?"
+    relevant_phrases:
+      - "ref"
+      - "finalize"
+      - "WeakValueDictionary"
+      - "weakref"
+    tags: [gc, weakref, phase1]
+
+  - id: cp-008
+    query: "How to control the rounding mode when performing decimal arithmetic in Python?"
+    relevant_phrases:
+      - "ROUND_HALF_UP"
+      - "Decimal"
+      - "getcontext"
+      - "setcontext"
+    tags: [decimal, arithmetic, phase1]
+
+  - id: cp-009
+    query: "How to configure mutual TLS client certificate authentication using Python's ssl module?"
+    relevant_phrases:
+      - "SSLContext"
+      - "PROTOCOL_TLS_CLIENT"
+      - "load_cert_chain"
+      - "verify_mode"
+    tags: [ssl, security, phase1]
+
+  - id: cp-010
+    query: "How to define a mutable default value for a Python dataclass field without sharing state?"
+    relevant_phrases:
+      - "field"
+      - "default_factory"
+      - "dataclass"
+      - "InitVar"
+    tags: [dataclasses, phase1]
+
+  - id: cp-011
+    query: "How to register a custom CSV dialect to read pipe-delimited or tab-delimited files?"
+    relevant_phrases:
+      - "Dialect"
+      - "register_dialect"
+      - "Sniffer"
+      - "delimiter"
+    tags: [csv, io, phase1]
+
+  - id: cp-012
+    query: "How to recursively walk a directory tree and collect all Python source files?"
+    relevant_phrases:
+      - "rglob"
+      - "Path"
+      - "iterdir"
+      - "suffix"
+    tags: [pathlib, filesystem, phase1]
+
+  - id: cp-013
+    query: "How to define a Python abstract interface that forces subclasses to implement methods?"
+    relevant_phrases:
+      - "ABC"
+      - "abstractmethod"
+      - "ABCMeta"
+      - "register"
+    tags: [abc, design, phase1]
+
+  - id: cp-014
+    query: "How to memoize expensive pure function results with a bounded in-memory cache in Python?"
+    relevant_phrases:
+      - "lru_cache"
+      - "cache"
+      - "maxsize"
+      - "CacheInfo"
+    tags: [functools, cache, phase1]
+
+  - id: cp-015
+    query: "How to convert a naive datetime to a timezone-aware datetime and shift it to another zone?"
+    relevant_phrases:
+      - "astimezone"
+      - "timezone"
+      - "tzinfo"
+      - "utcoffset"
+    tags: [datetime, timezone, phase1]
+
+  - id: cp-016
+    query: "How to generate a universally unique identifier using a namespace URL in Python?"
+    relevant_phrases:
+      - "uuid5"
+      - "uuid3"
+      - "NAMESPACE_URL"
+      - "uuid4"
+    tags: [uuid, phase1]
+
+  - id: cp-017
+    query: "How to tokenize Python source code and get the stream of typed tokens?"
+    relevant_phrases:
+      - "tokenize"
+      - "generate_tokens"
+      - "TokenInfo"
+      - "detect_encoding"
+    tags: [tokenize, parsing, phase1]
+
+  - id: cp-018
+    query: "How to use a heap-based priority queue to retrieve items in ascending order in Python?"
+    relevant_phrases:
+      - "heappush"
+      - "heappop"
+      - "nlargest"
+      - "nsmallest"
+    tags: [heapq, data-structures, phase1]
+
+  - id: cp-019
+    query: "How to pack and unpack binary integer data from a byte buffer for network protocols?"
+    relevant_phrases:
+      - "pack"
+      - "unpack"
+      - "calcsize"
+      - "struct"
+    tags: [struct, binary, phase1]
+
+  - id: cp-020
+    query: "How to run CPU-bound functions in parallel worker processes with a per-task timeout?"
+    relevant_phrases:
+      - "ProcessPoolExecutor"
+      - "Future"
+      - "as_completed"
+      - "TimeoutError"
+    tags: [concurrent, multiprocessing, phase1]

@@ -1,0 +1,89 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hydrag-benchmark"
+version = "0.5.0"
+description = "Local-only RAG benchmarking CLI — measures recall, MRR, chunk overlap, latency, and BEIR IR metrics"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    { name = "Studio Playbook Contributors" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+keywords = ["rag", "benchmark", "retrieval", "hydrag", "recall", "mrr"]
+dependencies = [
+    "hydrag-core[chromadb]",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+gpu = [
+    "torch>=2.0",
+    "transformers>=4.40",
+]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+hydrag-bench = "hydrag_benchmark.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/studio-playbook/hydrag-benchmark"
+Documentation = "https://github.com/studio-playbook/hydrag-benchmark#readme"
+Repository = "https://github.com/studio-playbook/hydrag-benchmark"
+Changelog = "https://github.com/studio-playbook/hydrag-benchmark/blob/main/CHANGELOG.md"
+Issues = "https://github.com/studio-playbook/hydrag-benchmark/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hydrag_benchmark"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/",
+    "tests/",
+    "suites/",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    "pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
