@@ -1,3 +1,6 @@
-"""hydrag-benchmark — Local-only RAG benchmarking CLI."""
+"""hydrag-benchmark — Local-only RAG benchmarking CLI.
 
-__version__ = "0.5.0"
+This package ships a ``py.typed`` marker for PEP 561 compliance.
+"""
+
+__version__ = "0.5.1"

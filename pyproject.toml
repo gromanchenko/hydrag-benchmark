@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hydrag-benchmark"
-version = "0.5.0"
+version = "0.5.1"
 description = "Local-only RAG benchmarking CLI — measures recall, MRR, chunk overlap, latency, and BEIR IR metrics"
 readme = "README.md"
 license = "Apache-2.0"
@@ -28,7 +28,7 @@ classifiers = [
 ]
 keywords = ["rag", "benchmark", "retrieval", "hydrag", "recall", "mrr"]
 dependencies = [
-    "hydrag-core[chromadb]",
+    "hydrag-core[chromadb]>=1.2.0",
     "pyyaml>=6.0",
 ]
 
@@ -47,11 +47,11 @@ dev = [
 hydrag-bench = "hydrag_benchmark.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/studio-playbook/hydrag-benchmark"
-Documentation = "https://github.com/studio-playbook/hydrag-benchmark#readme"
-Repository = "https://github.com/studio-playbook/hydrag-benchmark"
-Changelog = "https://github.com/studio-playbook/hydrag-benchmark/blob/main/CHANGELOG.md"
-Issues = "https://github.com/studio-playbook/hydrag-benchmark/issues"
+Homepage = "https://github.com/gromanchenko/mot/tree/main/packages/hydrag-benchmark"
+Documentation = "https://github.com/gromanchenko/mot/tree/main/packages/hydrag-benchmark#readme"
+Repository = "https://github.com/gromanchenko/mot"
+Changelog = "https://github.com/gromanchenko/mot/blob/main/packages/hydrag-benchmark/CHANGELOG.md"
+Issues = "https://github.com/gromanchenko/mot/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/hydrag_benchmark"]
@@ -64,8 +64,6 @@ include = [
     "LICENSE",
     "README.md",
     "CHANGELOG.md",
-    "CONTRIBUTING.md",
-    "CODE_OF_CONDUCT.md",
     "pyproject.toml",
 ]
 

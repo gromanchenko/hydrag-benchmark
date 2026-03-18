@@ -10,13 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Doc2Query & AugmentationCache re-exported from hydrag-core** (T-746): `doc2query.py` and `augmentation_cache.py` are now thin re-export wrappers; canonical implementation lives in `hydrag.doc2query` (hydrag-core v1.2.0+). All existing imports remain backward-compatible.
-- Package version bumped to `0.5.0`.
-
-## [0.4.0] - 2026-03-18
-
-### Changed
-
 - Minor version bump for hydrag-core v1.2.0 compatibility.
+- Package version bumped to `0.5.0`.
 
 ## [0.3.0] - 2026-03-15
 

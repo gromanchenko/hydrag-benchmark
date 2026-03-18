@@ -17,12 +17,3 @@ __pycache__/
 beir-results/
 # Dev scripts
 run_beir_save.py
-*.whl
-__pycache__/
-*.pyc
-.mypy_cache/
-.pytest_cache/
-# Scratch dev scripts
-test_pool.py
-test_profile.py
-test_profile4.py

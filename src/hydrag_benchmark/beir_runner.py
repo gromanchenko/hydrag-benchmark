@@ -26,6 +26,7 @@ from .beir_loader import download_beir_dataset, load_beir_corpus, load_beir_qrel
 from .heads.base import Chunk, ScoredChunk
 from .heads.head_d import HeadD
 from .heads.head_e import HeadE
+from .heads.head_hydrag import HeadHydrag
 
 logger = logging.getLogger("hydrag_benchmark.beir_runner")
 
@@ -132,7 +133,7 @@ def _corpus_to_chunks(corpus: dict[str, dict[str, str]]) -> tuple[list[Chunk], d
 
 
 def _evaluate_head(
-    head: HeadD | HeadE,
+    head: HeadD | HeadE | HeadHydrag,
     queries: dict[str, str],
     qrels: dict[str, dict[str, int]],
     chunk_to_doc: dict[str, str],
@@ -254,6 +255,11 @@ def run_beir_benchmark(
             head = HeadE(
                 ollama_host=ollama_host,
                 model=ollama_model,
+            )
+        elif head_name == "head_hydrag":
+            head = HeadHydrag(
+                ollama_host=ollama_host,
+                ollama_model=ollama_model,
             )
         else:
             logger.warning("Unknown head: %s, skipping", head_name)

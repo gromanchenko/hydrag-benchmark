@@ -6,10 +6,10 @@ Downloads from HuggingFace BEIR mirror if not cached locally.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
-import tarfile
 import urllib.request
 from pathlib import Path
 
@@ -37,6 +37,17 @@ BEIR_MEDIUM_DATASETS = frozenset({
 })
 
 ALL_BEIR_DATASETS = BEIR_SMALL_DATASETS | BEIR_MEDIUM_DATASETS
+
+# SHA-256 checksums for BEIR dataset archives (S-002: verify external downloads)
+# Note: BEIR datasets require network access — opt-in behavior (S-003 acknowledged).
+# Computed from https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/<name>.zip
+BEIR_SHA256: dict[str, str] = {
+    "scifact": "536e14446a0ba56ed1398ab1055f39fe852686ecad24a6306c80c490fa8e0165",
+    "nfcorpus": "efe5be03f8c5b86a5870102d0599d227c8c6e2484328e68c6522560385671b0b",
+    "arguana": "cfdf79adce27a401b3cd3ea267903134dbfab2c6afeb95d7fe5724a00bf7557b",
+    "scidocs": "96640201687767c9b1fcc5af7a80b90fb325b37fa25329c2586c25edcfa17ef1",
+    "fiqa": "32c7df99ed21252fdfb2cf3f5673502a8d245ee0c44c4a133570d92ce2b3ad02",
+}
 
 
 def default_cache_dir() -> Path:
@@ -72,6 +83,23 @@ def download_beir_dataset(
     logger.info("Downloading BEIR %s from %s", dataset, url)
     _download_with_progress(url, archive_path)
 
+    # SHA-256 verification (S-002)
+    expected_hash = BEIR_SHA256.get(dataset)
+    if expected_hash:
+        actual_hash = _sha256_file(archive_path)
+        if actual_hash != expected_hash:
+            archive_path.unlink(missing_ok=True)
+            raise RuntimeError(
+                f"SHA-256 mismatch for {dataset}: "
+                f"expected {expected_hash}, got {actual_hash}"
+            )
+        logger.info("SHA-256 verified for %s", dataset)
+    else:
+        logger.warning(
+            "No SHA-256 hash registered for BEIR dataset %s — skipping verification",
+            dataset,
+        )
+
     # Extract — BEIR datasets come as zip files
     logger.info("Extracting %s", archive_path)
     import zipfile
@@ -89,6 +117,15 @@ def download_beir_dataset(
     archive_path.unlink(missing_ok=True)
     logger.info("BEIR %s ready at %s", dataset, dataset_dir)
     return dataset_dir
+
+
+def _sha256_file(path: Path) -> str:
+    """Compute SHA-256 hex digest of a file."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(block)
+    return h.hexdigest()
 
 
 def _download_with_progress(url: str, dest: Path) -> None:

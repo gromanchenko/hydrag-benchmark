@@ -54,6 +54,7 @@ class RunResult:
     corpus_dir: str
     cases: list[CaseResult]
     summary: dict[str, Any] = field(default_factory=dict)
+    strategy_note: str = ""
 
 
 # ── Corpus indexer ───────────────────────────────────────────────────────────
@@ -297,6 +298,19 @@ def run_benchmark(
         "latency_ms": latency_stats(latencies),
     }
 
+    _STRATEGY_NOTES = {
+        "similarity": "",
+        "hybrid": "ChromaDB-backed: semantic/keyword/hybrid all delegate to the same "
+                  "collection.query(). Differences measure pipeline architecture "
+                  "(RRF fusion, head gating), not underlying retrieval.",
+        "crag": "ChromaDB-backed: semantic/keyword/hybrid all delegate to the same "
+                "collection.query(). Differences measure CRAG gating overhead, "
+                "not retrieval strategy.",
+        "hydrag": "ChromaDB-backed: semantic/keyword/hybrid all delegate to the same "
+                  "collection.query(). Differences measure full pipeline overhead "
+                  "(head gating, CRAG, fallbacks), not underlying retrieval.",
+    }
+
     result = RunResult(
         schema_version=SCHEMA_VERSION,
         run_id=f"bench-{uuid.uuid4().hex[:8]}",
@@ -309,6 +323,7 @@ def run_benchmark(
         corpus_dir=str(corpus_dir),
         cases=case_results,
         summary=summary,
+        strategy_note=_STRATEGY_NOTES.get(strategy, ""),
     )
 
     return json.dumps(asdict(result), indent=2, ensure_ascii=False)

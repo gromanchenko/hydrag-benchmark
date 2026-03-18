@@ -9,7 +9,16 @@ from typing import Protocol, runtime_checkable
 
 @dataclass
 class Chunk:
-    """A single text chunk from the corpus."""
+    """A single text chunk from the corpus.
+
+    Attributes:
+        chunk_id: Content-addressed ID (SHA-256 hex prefix via ``content_address()``).
+            Callers may also use sequential or external IDs.
+        text: Raw chunk text content.
+        source: Origin identifier (e.g. file path, URL, or corpus document ID).
+        symbols: Optional code symbols extracted from the chunk (function names,
+            class names, etc.). Empty list for prose content.
+    """
 
     chunk_id: str
     text: str
