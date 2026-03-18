@@ -110,7 +110,7 @@ def _build_parser() -> argparse.ArgumentParser:
     mh_p.add_argument("--cache-dir", type=Path, default=None, help="Directory for augmentation cache persistence")
 
     # ── beir ────────────────────────────────────────────────────────
-    beir_p = sub.add_parser("beir", help="Run BEIR IR benchmark for FTS5 heads (D/E)")
+    beir_p = sub.add_parser("beir", help="Run BEIR IR benchmark for all heads (A-E + HydRAG)")
     beir_p.add_argument("--dataset", default="scifact", help="BEIR dataset name (default: scifact)")
     beir_p.add_argument(
         "--heads", nargs="+", default=["head_d", "head_e"],
@@ -121,6 +121,14 @@ def _build_parser() -> argparse.ArgumentParser:
     beir_p.add_argument("--max-queries", type=int, default=0, help="Limit queries (0 = all)")
     beir_p.add_argument("--ollama-model", default="qwen3:4b", help="Ollama model for Head E enrichment")
     beir_p.add_argument("--ollama-host", default="http://localhost:11434", help="Ollama API endpoint")
+    beir_p.add_argument(
+        "--embedding-model",
+        default="Alibaba-NLP/gte-Qwen2-7B-instruct",
+        help="Dense embedding model for Head B/C (default: gte-Qwen2-7B-instruct)",
+    )
+    beir_p.add_argument("--use-gpu", action="store_true", help="Use GPU-accelerated TransformersEmbedder for Head B/C")
+    beir_p.add_argument("--doc2query-model", default="qwen3:4b", help="Doc2Query LLM model for Head B (default: qwen3:4b)")
+    beir_p.add_argument("--doc2query-api-url", default="http://localhost:11434", help="Doc2Query LLM API URL")
 
     return parser
 
@@ -289,6 +297,10 @@ def _cmd_beir(args: argparse.Namespace) -> int:
         max_queries=args.max_queries,
         ollama_model=args.ollama_model,
         ollama_host=args.ollama_host,
+        embedding_model=args.embedding_model,
+        use_gpu=args.use_gpu,
+        doc2query_model=args.doc2query_model,
+        doc2query_api_url=args.doc2query_api_url,
     )
     return 0
 
