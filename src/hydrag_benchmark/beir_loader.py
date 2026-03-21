@@ -109,10 +109,7 @@ def download_beir_dataset(
         for member in zf.namelist():
             if ".." in member or member.startswith("/"):
                 raise ValueError(f"Security: invalid zip path {member}")
-        if sys.version_info >= (3, 12):
-            zf.extractall(cache, filter="data")
-        else:
-            zf.extractall(cache)
+        zf.extractall(cache)
 
     # Verify extraction
     if not (dataset_dir / "corpus.jsonl").exists():
