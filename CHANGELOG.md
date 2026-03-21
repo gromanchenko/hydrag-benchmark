@@ -5,6 +5,26 @@ All notable changes to `hydrag-benchmark` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.5] - 2026-03-21
+
+### Fixed
+
+- **Version sync**: `__version__` in `__init__.py` now matches `pyproject.toml` (was stuck at `0.5.2` while pyproject.toml was at `0.5.4`).
+
+### Changed
+
+- Package version bumped to `0.5.5`.
+
+## [0.5.4] - 2026-03-19
+
+### Added
+
+- `--skip-indexing` CLI flag to reuse existing ChromaDB index without re-indexing (T-762).
+
+### Changed
+
+- Package version bumped to `0.5.4`.
+
 ## [0.5.3] - 2026-03-18
 
 ### Fixed
@@ -20,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Package version bumped to `0.5.1`.
+- Package version bumped to `0.5.3`.
 
 ## [0.5.0] - 2026-03-18
 
