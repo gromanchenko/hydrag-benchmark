@@ -47,11 +47,11 @@ dev = [
 hydrag-bench = "hydrag_benchmark.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/gromanchenko/mot/tree/main/packages/hydrag-benchmark"
-Documentation = "https://github.com/gromanchenko/mot/tree/main/packages/hydrag-benchmark#readme"
-Repository = "https://github.com/gromanchenko/mot"
-Changelog = "https://github.com/gromanchenko/mot/blob/main/packages/hydrag-benchmark/CHANGELOG.md"
-Issues = "https://github.com/gromanchenko/mot/issues"
+Homepage = "https://github.com/gromanchenko/hydrag-benchmark"
+Documentation = "https://github.com/gromanchenko/hydrag-benchmark#readme"
+Repository = "https://github.com/gromanchenko/hydrag-benchmark"
+Changelog = "https://github.com/gromanchenko/hydrag-benchmark/blob/main/CHANGELOG.md"
+Issues = "https://github.com/gromanchenko/hydrag-benchmark/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/hydrag_benchmark"]
