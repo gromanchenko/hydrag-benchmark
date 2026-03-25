@@ -1,14 +1,18 @@
-"""Head D — SQLite FTS5 lexical retrieval. Zero GPU, zero network.
+"""Head D — Lexical (BM25) retrieval. Zero GPU, zero network.
 
-Wraps hydrag-core's SQLiteFTSStore as a benchmark RetrievalHead.
-BM25 ranking over raw content only (no enrichment). Sub-millisecond
-query latency. Baseline for measuring enrichment lift (Head E).
+Wraps a VectorStoreAdapter backend (default: SQLiteFTSStore) as a
+benchmark RetrievalHead. BM25 ranking over raw content only (no
+enrichment). Sub-millisecond query latency with the SQLite backend.
+Baseline for measuring enrichment lift (Head E).
+
+Pass ``adapter`` to swap the storage backend (e.g. SurrealDBAdapter).
 """
 
 from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from hydrag import IndexedChunk, SQLiteFTSStore
 
@@ -18,14 +22,19 @@ logger = logging.getLogger("hydrag_benchmark.heads.head_d")
 
 
 class HeadD:
-    """SQLite FTS5 lexical retrieval head. No GPU, no network.
+    """Lexical retrieval head — pluggable storage backend.
 
-    Index-time: chunks are inserted into SQLite FTS5 (raw content only).
-    Query-time: BM25 ranking over FTS5 index, sub-millisecond latency.
+    Index-time: chunks are inserted via ``adapter.index_documents()``.
+    Query-time: BM25 ranking via ``adapter.keyword_search()``.
+
+    Args:
+        db_path: SQLite database path (used only when *adapter* is None).
+        adapter: Pre-configured VectorStoreAdapter. When provided,
+            *db_path* is ignored and the adapter is used directly.
     """
 
-    def __init__(self, db_path: str | Path = ":memory:") -> None:
-        self._store = SQLiteFTSStore(db_path)
+    def __init__(self, db_path: str | Path = ":memory:", *, adapter: Any = None) -> None:
+        self._store = adapter if adapter is not None else SQLiteFTSStore(db_path)
         self._chunks: dict[str, Chunk] = {}
         self._text_to_id: dict[str, str] = {}  # content hash → chunk_id
 
@@ -62,7 +71,7 @@ class HeadD:
             results.append(ScoredChunk(
                 chunk=chunk,
                 score=1.0 / (rank + 1),
-                head_origin="head_d",
+                head_origin=self.name,
             ))
         return results
 

@@ -129,6 +129,11 @@ def _build_parser() -> argparse.ArgumentParser:
     beir_p.add_argument("--use-gpu", action="store_true", help="Use GPU-accelerated TransformersEmbedder for Head B/C")
     beir_p.add_argument("--doc2query-model", default="qwen3:4b", help="Doc2Query LLM model for Head B (default: qwen3:4b)")
     beir_p.add_argument("--doc2query-api-url", default="http://localhost:11434", help="Doc2Query LLM API URL")
+    beir_p.add_argument(
+        "--backend", default="sqlite", choices=["sqlite", "surrealdb"],
+        help="Storage backend for heads D/E/HydRAG (default: sqlite)",
+    )
+    beir_p.add_argument("--surreal-url", default="ws://localhost:8000", help="SurrealDB WebSocket URL (default: ws://localhost:8000)")
 
     return parser
 
@@ -301,6 +306,8 @@ def _cmd_beir(args: argparse.Namespace) -> int:
         use_gpu=args.use_gpu,
         doc2query_model=args.doc2query_model,
         doc2query_api_url=args.doc2query_api_url,
+        backend=args.backend,
+        surreal_url=args.surreal_url,
     )
     return 0
 

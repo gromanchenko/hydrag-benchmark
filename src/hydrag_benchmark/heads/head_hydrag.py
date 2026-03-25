@@ -4,9 +4,10 @@ Wraps hydrag-core's ``hydrag_search()`` orchestrator (Head 0–3b) behind the
 benchmark ``RetrievalHead`` protocol. This lets the BEIR runner compare the
 full HydRAG pipeline against individual heads (D, E) on the same datasets.
 
-The adapter uses SQLiteFTSStore as the VectorStoreAdapter backend, matching
-Head D/E's indexing. CRAG supervisor and semantic fallback are enabled by
-default (web fallback is disabled — offline benchmarking).
+The adapter defaults to SQLiteFTSStore but can be swapped to any
+VectorStoreAdapter backend (e.g. SurrealDBAdapter) via the ``adapter``
+parameter. CRAG supervisor and semantic fallback are enabled by default
+(web fallback is disabled — offline benchmarking).
 
 Since ``hydrag_search()`` returns ``list[RetrievalResult]`` (text strings),
 we maintain a reverse index (text → chunk_id) built at index time to map
@@ -18,7 +19,7 @@ from __future__ import annotations
 import hashlib
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from hydrag import HydRAGConfig, IndexedChunk, SQLiteFTSStore, hydrag_search
 from hydrag.protocols import LLMProvider
@@ -36,7 +37,7 @@ def _text_hash(text: str) -> str:
 class HeadHydrag:
     """Full HydRAG multi-headed retrieval benchmark head.
 
-    Index-time: chunks inserted into SQLiteFTSStore (same as Head D).
+    Index-time: chunks inserted into the storage adapter.
     Query-time: ``hydrag_search()`` runs the full 5-head pipeline:
       Head 0 — BM25 fast path
       Head 1 — hybrid retrieval
@@ -48,6 +49,7 @@ class HeadHydrag:
       - ``enable_crag``: run CRAG supervisor (default: True)
       - ``profile``: "prose" or "code" (default: "prose")
       - ``ollama_host`` / ``ollama_model``: for CRAG LLM calls
+      - ``adapter``: pre-configured VectorStoreAdapter backend
     """
 
     def __init__(
@@ -59,8 +61,9 @@ class HeadHydrag:
         ollama_host: str = "http://localhost:11434",
         ollama_model: str = "qwen3:4b",
         llm: Optional[LLMProvider] = None,
+        adapter: Any = None,
     ) -> None:
-        self._store = SQLiteFTSStore(db_path)
+        self._store = adapter if adapter is not None else SQLiteFTSStore(db_path)
         self._chunks: dict[str, Chunk] = {}
         self._text_to_chunk_id: dict[str, str] = {}  # text_hash → chunk_id
         self._llm = llm

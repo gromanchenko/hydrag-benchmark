@@ -8,9 +8,13 @@ Heads:
   - head_a: Graph/Index retrieval (CPU-only)
   - head_b: Doc2Query + Dense Embedding (GPU for TransformersEmbedder)
   - head_c: Hybrid rerank (Head A candidates + Head B cosine, GPU)
-  - head_d: SQLite FTS5 BM25 (CPU-only)
-  - head_e: FTS5 + Ollama keyword enrichment (CPU + Ollama)
-  - head_hydrag: Full HydRAG pipeline (CPU + Ollama)
+  - head_d: Lexical BM25 (CPU-only, any backend)
+  - head_e: Lexical + Ollama keyword enrichment (CPU + Ollama, any backend)
+  - head_hydrag: Full HydRAG pipeline (CPU + Ollama, any backend)
+
+Backends:
+  - sqlite (default): SQLiteFTSStore — zero-dep, in-memory FTS5
+  - surrealdb: SurrealDBAdapter — FTS + vector + graph via SurrealDB server
 """
 
 from __future__ import annotations
@@ -271,6 +275,8 @@ def run_beir_benchmark(
     use_gpu: bool = False,
     doc2query_model: str = "qwen3:4b",
     doc2query_api_url: str = "http://localhost:11434",
+    backend: str = "sqlite",
+    surreal_url: str = "ws://localhost:8000",
 ) -> BeirBenchmarkResult:
     """Run BEIR benchmark for all heads (A through E + HydRAG).
 
@@ -286,6 +292,8 @@ def run_beir_benchmark(
         use_gpu: Use GPU-accelerated TransformersEmbedder for Head B/C.
         doc2query_model: Ollama model for Doc2Query generation (Head B).
         doc2query_api_url: Ollama API URL for Doc2Query (Head B).
+        backend: Storage backend — "sqlite" (default) or "surrealdb".
+        surreal_url: SurrealDB WebSocket URL (used when backend="surrealdb").
 
     Returns:
         BeirBenchmarkResult with per-head metrics.
@@ -353,9 +361,34 @@ def run_beir_benchmark(
 
     result = BeirBenchmarkResult(dataset=dataset, gpu=gpu_info)
 
+    # Per-head adapter factory (each head gets its own isolated store)
+    def _make_adapter(head_name: str) -> Any:
+        if backend == "sqlite":
+            return None  # heads default to SQLiteFTSStore(":memory:")
+        if backend == "surrealdb":
+            from hydrag import SurrealDBAdapter
+            adapter = SurrealDBAdapter(
+                url=surreal_url,
+                embedding_dim=1,  # FTS-only benchmarks (no vector index)
+                embed_fn=None,
+                namespace="hydrag",
+                database=f"bench_{head_name}",
+                timeout=60,
+                auto_schema=True,
+            )
+            adapter.__enter__()
+            return adapter
+        raise ValueError(f"Unknown backend: {backend!r}. Use 'sqlite' or 'surrealdb'.")
+
+    adapters_to_close: list[Any] = []
+
     for head_name in heads:
-        logger.info("Running head: %s", head_name)
+        logger.info("Running head: %s (backend: %s)", head_name, backend)
         closeable = True
+
+        adapter = _make_adapter(head_name)
+        if adapter is not None:
+            adapters_to_close.append(adapter)
 
         if head_name == "head_a":
             # HeadA takes chunks in constructor (builds index internally)
@@ -379,16 +412,18 @@ def run_beir_benchmark(
             head = HeadC(head_a=head_a_for_c, head_b=head_b_for_c)
             closeable = False
         elif head_name == "head_d":
-            head = HeadD()
+            head = HeadD(adapter=adapter)
         elif head_name == "head_e":
             head = HeadE(
                 ollama_host=ollama_host,
                 model=ollama_model,
+                adapter=adapter,
             )
         elif head_name == "head_hydrag":
             head = HeadHydrag(
                 ollama_host=ollama_host,
                 ollama_model=ollama_model,
+                adapter=adapter,
             )
         else:
             logger.warning("Unknown head: %s, skipping", head_name)
@@ -425,6 +460,13 @@ def run_beir_benchmark(
     # Clean up shared embedder GPU memory
     if _embedder is not None and hasattr(_embedder, "unload"):
         _embedder.unload()
+
+    # Clean up SurrealDB adapters
+    for adapter in adapters_to_close:
+        try:
+            adapter.close()
+        except Exception:
+            logger.debug("Error closing adapter", exc_info=True)
 
     # Write results
     out_path = output_dir / f"beir-{dataset}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}.json"
