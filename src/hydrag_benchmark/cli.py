@@ -134,6 +134,8 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Storage backend for heads D/E/HydRAG (default: sqlite)",
     )
     beir_p.add_argument("--surreal-url", default="ws://localhost:8000", help="SurrealDB WebSocket URL (default: ws://localhost:8000)")
+    beir_p.add_argument("--surreal-user", default="root", help="SurrealDB username (default: root)")
+    beir_p.add_argument("--surreal-pass", default="root", help="SurrealDB password (default: root)")
 
     return parser
 
@@ -308,6 +310,8 @@ def _cmd_beir(args: argparse.Namespace) -> int:
         doc2query_api_url=args.doc2query_api_url,
         backend=args.backend,
         surreal_url=args.surreal_url,
+        surreal_username=args.surreal_user,
+        surreal_password=args.surreal_pass,
     )
     return 0
 

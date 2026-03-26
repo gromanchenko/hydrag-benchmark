@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hydrag-benchmark"
-version = "0.5.6"
+version = "0.5.7"
 description = "Local-only RAG benchmarking CLI — measures recall, MRR, chunk overlap, latency, and BEIR IR metrics"
 readme = "README.md"
 license = "Apache-2.0"

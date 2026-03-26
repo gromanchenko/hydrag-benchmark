@@ -277,6 +277,8 @@ def run_beir_benchmark(
     doc2query_api_url: str = "http://localhost:11434",
     backend: str = "sqlite",
     surreal_url: str = "ws://localhost:8000",
+    surreal_username: str = "root",
+    surreal_password: str = "root",
 ) -> BeirBenchmarkResult:
     """Run BEIR benchmark for all heads (A through E + HydRAG).
 
@@ -373,6 +375,8 @@ def run_beir_benchmark(
                 embed_fn=None,
                 namespace="hydrag",
                 database=f"bench_{head_name}",
+                username=surreal_username,
+                password=surreal_password,
                 timeout=60,
                 auto_schema=True,
             )
