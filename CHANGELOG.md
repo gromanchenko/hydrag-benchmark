@@ -5,6 +5,30 @@ All notable changes to `hydrag-benchmark` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.7] - 2026-03-26
+
+### Fixed
+
+- SurrealDB credentials are now passed through CLI and BEIR runner paths so authenticated SurrealDB runs do not silently fall back to unauthenticated defaults.
+
+### Changed
+
+- Package version bumped to `0.5.7`.
+
+## [0.5.6] - 2026-03-25
+
+### Added
+
+- SurrealDB backend adapter support in BEIR benchmark workflows.
+
+### Fixed
+
+- Head E behavior fix in benchmark execution flow.
+
+### Changed
+
+- Package version bumped to `0.5.6`.
+
 ## [0.5.5] - 2026-03-21
 
 ### Fixed
