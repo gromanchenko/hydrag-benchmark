@@ -72,6 +72,9 @@ hydrag-bench prefill --corpus-dir <path> [options]
 
 # 4) Multi-head harness benchmark (Heads A/B/C)
 hydrag-bench multihead <suite.yaml> --corpus-dir <path> [options]
+
+# 5) BEIR benchmark harness (Heads A-E + HydRAG)
+hydrag-bench beir --dataset <name> [options]
 ```
 
 ### `run` Arguments
@@ -125,6 +128,26 @@ hydrag-bench multihead <suite.yaml> --corpus-dir <path> [options]
 | `--embedding-model` | no | `Alibaba-NLP/gte-Qwen2-7B-instruct` | Dense embedding model name |
 | `--alpha` | no | `0.5` | Head C rerank interpolation weight |
 | `--cache-dir` | no | none | Directory for `augmentation_cache.json` persistence |
+
+### `beir` Arguments
+
+| Flag | Required | Default | Description |
+|------|----------|---------|-------------|
+| `--dataset` | no | `scifact` | BEIR dataset name |
+| `--heads` | no | `head_d,head_e,head_hydrag` | Comma-separated head list |
+| `--cache-dir` | no | default cache | BEIR dataset cache directory |
+| `--output-dir` | no | stdout | Directory to write result JSON |
+| `--max-queries` | no | `0` | Limit query count (`0` = all) |
+| `--ollama-model` | no | `qwen3:4b` | Ollama model for Head E enrichment |
+| `--ollama-host` | no | `http://localhost:11434` | Ollama API endpoint |
+| `--ollama-timeout` | no | `30.0` | Ollama request timeout seconds |
+| `--use-gpu` | no | `false` | Use GPU embedder for Head B/C |
+| `--doc2query-model` | no | `qwen3:4b` | Doc2Query model for Head B |
+| `--doc2query-api-url` | no | `http://localhost:11434` | Doc2Query API URL |
+| `--doc2query-timeout-s` | no | `30.0` | Doc2Query timeout seconds |
+| `--surreal-url` | no | `ws://localhost:8000` | SurrealDB WebSocket URL |
+| `--surreal-user` | no | `root` | SurrealDB username |
+| `--surreal-pass` | no | `root` | SurrealDB password |
 
 ## Config Variables and Runtime Inputs
 
@@ -191,7 +214,8 @@ cases:
 ## Development
 
 ```bash
-cd packages/hydrag-benchmark
+git clone https://github.com/gromanchenko/hydrag-benchmark.git
+cd hydrag-benchmark
 pip install -e ".[dev]"
 python -m pytest tests/ -v
 ```
