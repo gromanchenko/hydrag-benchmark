@@ -178,7 +178,7 @@ class TestHeadB:
 
     def test_head_name(self, head_b_chunks: list[Chunk]) -> None:
         head = HeadB(embedder=HashEmbedder(dimension=64))
-        assert head.name == "head_b"
+        assert head.name == "dense_doc2query"
 
     def test_filter_stats(self, head_b_chunks: list[Chunk]) -> None:
         embedder = HashEmbedder(dimension=64)

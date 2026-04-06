@@ -31,12 +31,12 @@ def sample_chunks() -> list[Chunk]:
 class TestHeadHydragBasic:
     def test_name(self) -> None:
         head = HeadHydrag()
-        assert head.name == "head_hydrag"
+        assert head.name == "hydrag_full"
         head.close()
 
     def test_context_manager(self) -> None:
         with HeadHydrag() as head:
-            assert head.name == "head_hydrag"
+            assert head.name == "hydrag_full"
 
     def test_build_index(self, sample_chunks: list[Chunk]) -> None:
         with HeadHydrag() as head:
@@ -92,7 +92,7 @@ class TestHeadHydragRetrieval:
         assert len(results) == 2
         assert results[0].chunk.chunk_id == "doc-1"
         assert results[0].score == 0.9
-        assert results[0].head_origin == "head_hydrag"
+        assert results[0].head_origin == "hydrag_full"
         assert results[1].chunk.chunk_id == "doc-3"
         assert results[1].score == 0.7
 
@@ -194,6 +194,10 @@ class TestHeadHydragConfig:
         head = HeadHydrag(profile="code")
         assert head._config.profile == "code"
         head.close()
+
+    def test_invalid_backend_raises(self) -> None:
+        with pytest.raises(ValueError, match="db_backend"):
+            HeadHydrag(db_backend="not-a-backend")
 
     def test_custom_llm_passed_through(self, sample_chunks: list[Chunk]) -> None:
         """Custom LLM provider is forwarded to hydrag_search."""

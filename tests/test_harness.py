@@ -94,7 +94,7 @@ def test_suite(tmp_path: Path) -> BenchSuite:
 class TestHeadC:
     def test_name(self, built_heads: tuple[HeadA, HeadB, HeadC]) -> None:
         _, _, head_c = built_heads
-        assert head_c.name == "head_c"
+        assert head_c.name == "hybrid_graph_dense"
 
     def test_retrieval_returns_results(self, built_heads: tuple[HeadA, HeadB, HeadC]) -> None:
         _, _, head_c = built_heads
@@ -111,7 +111,7 @@ class TestHeadC:
         _, _, head_c = built_heads
         results = head_c.retrieve("fibonacci", n_results=5)
         for r in results:
-            assert r.head_origin == "head_c"
+            assert r.head_origin == "hybrid_graph_dense"
 
     def test_no_candidates_returns_empty(
         self, built_heads: tuple[HeadA, HeadB, HeadC]

@@ -5,6 +5,27 @@ All notable changes to `hydrag-benchmark` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-04-06
+
+### Added
+
+- **`sys_sampler.py`**: Background thread-based system resource sampler (`PhaseSampler` context manager, 100 ms interval). Collects CPU, RAM, disk I/O, network I/O, and 14 GPU metrics (NVML) per benchmark phase.
+- **GPU metrics via `nvidia-ml-py`**: `compute_util_pct`, `mem_bandwidth_util_pct`, `vram_used/free/total_mb`, `pcie_tx/rx_kb_s`, `pcie_replay_delta`, `power_w`, `temp_c`, `sm_clock_mhz`, `mem_clock_mhz`, `fan_speed_pct`, `ecc_sbe_delta`, `ecc_dbe_delta`, `nvlink_rx/tx_kb_s`.
+- **`[metrics]` optional extra**: `pip install hydrag-benchmark[metrics]` pulls `psutil>=5.9` and `nvidia-ml-py>=11.0`.
+- **`surreal-microbench` sys_metrics output**: Each result row now includes a `sys_metrics` block with per-phase `drop` / `insert` / `rebuild` / `query` snapshots containing CPU, RAM, disk, network, and GPU data.
+- **`available_backends()`**: Helper returning `{"psutil": bool, "nvml_library": bool, "nvml": bool, "gpu_count": int}` for diagnostic inspection.
+- **`scripts/surreal_microbench_launch.py`**: EC2 spot launcher that runs `surreal-microbench` on a GPU instance (`g4dn.xlarge`) with SurrealDB and uploads full `sys_metrics` JSON results to S3.
+
+### Changed
+
+- `beir_bench_launch.py` default wheel URLs updated to `hydrag-core==1.3.0` and `hydrag-benchmark==0.6.0`.
+- NVML graceful degradation: `nvml_library` flag distinguishes "ImportError" (library absent) from "0 GPUs detected", giving precise CLI warnings.
+
+### Fixed
+
+- **SurrealDB v2.2.1 compat in `head_d_surreal.py`**: Updated to use `RecordID`-bound params for RELATE, health URL path stripping, and `vector::similarity::cosine()` ORDER BY fallback for the broken `<|n|>` ANN operator.
+- **SurrealDB credentials passthrough**: CLI and BEIR runner paths now forward `surrealdb_username`/`surrealdb_password` so authenticated SurrealDB runs do not silently fall back to unauthenticated defaults (backport of 0.5.7 fix).
+
 ## [0.5.7] - 2026-03-26
 
 ### Fixed

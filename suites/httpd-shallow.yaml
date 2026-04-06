@@ -1,0 +1,91 @@
+name: httpd-shallow-corpus
+version: "1.0"
+seed: 42
+description: >
+  Query suite for apache/httpd shallow-clone retrieval quality.
+  Designed for symbol_graph vs hydrag_full backend matrix runs.
+
+environment:
+  strategy: hydrag
+  n_results: 5
+
+cases:
+  - id: httpd-001
+    query: "Where is the main request handling loop implemented?"
+    relevant_phrases:
+      - "request"
+      - "handler"
+      - "module"
+    tags: [httpd, core, request-path]
+
+  - id: httpd-002
+    query: "How does virtual host configuration get parsed and stored?"
+    relevant_phrases:
+      - "virtual host"
+      - "config"
+      - "directive"
+    tags: [httpd, config, vhost]
+
+  - id: httpd-003
+    query: "Where are connection keepalive limits enforced?"
+    relevant_phrases:
+      - "keepalive"
+      - "timeout"
+      - "connection"
+    tags: [httpd, networking]
+
+  - id: httpd-004
+    query: "How are access log records generated for requests?"
+    relevant_phrases:
+      - "access log"
+      - "request"
+      - "log format"
+    tags: [httpd, logging]
+
+  - id: httpd-005
+    query: "Where is TLS or SSL support integrated in modules?"
+    relevant_phrases:
+      - "ssl"
+      - "tls"
+      - "module"
+    tags: [httpd, security]
+
+  - id: httpd-006
+    query: "How does URL rewrite or redirect behavior get configured?"
+    relevant_phrases:
+      - "rewrite"
+      - "redirect"
+      - "directive"
+    tags: [httpd, routing]
+
+  - id: httpd-007
+    query: "Where are process lifecycle hooks for startup and shutdown defined?"
+    relevant_phrases:
+      - "startup"
+      - "shutdown"
+      - "hook"
+    tags: [httpd, lifecycle]
+
+  - id: httpd-008
+    query: "How are authentication providers wired into request authorization?"
+    relevant_phrases:
+      - "authentication"
+      - "authorization"
+      - "provider"
+    tags: [httpd, auth]
+
+  - id: httpd-009
+    query: "Where are MPM worker or event scheduling decisions implemented?"
+    relevant_phrases:
+      - "mpm"
+      - "worker"
+      - "event"
+    tags: [httpd, performance]
+
+  - id: httpd-010
+    query: "How does proxy module forwarding map upstream targets?"
+    relevant_phrases:
+      - "proxy"
+      - "upstream"
+      - "balancer"
+    tags: [httpd, proxy]

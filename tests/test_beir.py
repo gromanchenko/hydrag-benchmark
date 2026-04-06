@@ -11,7 +11,7 @@ from unittest.mock import patch
 import pytest
 
 from hydrag_benchmark.beir_loader import load_beir_corpus, load_beir_qrels, load_beir_queries
-from hydrag_benchmark.beir_runner import map_at_k, mrr_at_k, ndcg_at_k, recall_at_k
+from hydrag_benchmark.beir_runner import _normalize_heads_with_warnings, map_at_k, mrr_at_k, ndcg_at_k, recall_at_k, run_beir_benchmark
 from hydrag_benchmark.heads.base import Chunk, ScoredChunk
 from hydrag_benchmark.heads.head_d import HeadD
 
@@ -71,7 +71,7 @@ def beir_dataset(tmp_path: Path) -> Path:
 class TestHeadD:
     def test_name(self) -> None:
         head = HeadD()
-        assert head.name == "head_d"
+        assert head.name == "fts5_baseline"
         head.close()
 
     def test_build_index_and_retrieve(self, sample_chunks: list[Chunk]) -> None:
@@ -80,7 +80,7 @@ class TestHeadD:
         results = head.retrieve("machine learning algorithms", n_results=3)
         assert len(results) > 0
         assert all(isinstance(r, ScoredChunk) for r in results)
-        assert results[0].head_origin == "head_d"
+        assert results[0].head_origin == "fts5_baseline"
         head.close()
 
     def test_scores_descending(self, sample_chunks: list[Chunk]) -> None:
@@ -214,6 +214,22 @@ class TestBeirMetrics:
         assert map_at_k(retrieved, qrel, k=2) == pytest.approx(0.5)
 
 
+class TestHeadNormalizationWarnings:
+    def test_warns_for_unknown_head_ids(self, caplog: pytest.LogCaptureFixture) -> None:
+        with caplog.at_level("WARNING"):
+            normalized = _normalize_heads_with_warnings(["fts5_baseline", "typo_head"])
+
+        assert normalized == ["fts5_baseline"]
+        assert "Ignoring unknown heads: typo_head" in caplog.text
+
+    def test_warns_for_duplicates_after_normalization(self, caplog: pytest.LogCaptureFixture) -> None:
+        with caplog.at_level("WARNING"):
+            normalized = _normalize_heads_with_warnings(["head_d", "fts5_baseline", "head_e", "head_d"])
+
+        assert normalized == ["fts5_baseline", "fts5_enriched"]
+        assert "Ignoring duplicate heads after normalization: fts5_baseline, head_d" in caplog.text
+
+
 # ── Integration: Head D + BEIR dataset ───────────────────────────────────────
 
 
@@ -254,3 +270,69 @@ class TestHeadDBeirIntegration:
             assert 0.0 <= recall <= 1.0
 
         head.close()
+
+
+class TestT968CorpusSizeGate:
+    """T-975: fts5_enriched must be skipped when corpus exceeds max_enrich_corpus."""
+
+    def test_gate_skips_enriched_large_corpus(self, beir_dataset: Path, tmp_path: Path) -> None:
+        """When max_enrich_corpus=1 (< any real corpus), fts5_enriched must be skipped."""
+        with patch("hydrag_benchmark.beir_runner.download_beir_dataset", return_value=beir_dataset):
+            result = run_beir_benchmark(
+                dataset="scifact",
+                heads=["fts5_baseline", "fts5_enriched"],
+                cache_dir=tmp_path,
+                output_dir=tmp_path / "out",
+                max_queries=2,
+                max_enrich_corpus=1,  # force skip: any real corpus > 1 doc
+            )
+        head_names = {hr.head for hr in result.heads}
+        assert "fts5_baseline" in head_names, "fts5_baseline must still run"
+        assert "fts5_enriched" in head_names, "fts5_enriched must appear as skipped entry"
+        skipped = next(hr for hr in result.heads if hr.head == "fts5_enriched")
+        assert skipped.enrichment_skipped is True
+        assert skipped.n_queries == 0
+
+    def test_gate_off_with_zero_uses_env(
+        self, beir_dataset: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """max_enrich_corpus=0 falls through to env var; env=1 triggers gate."""
+        monkeypatch.setenv("HYDRAG_MAX_CORPUS_FOR_ENRICHMENT", "1")
+        with patch("hydrag_benchmark.beir_runner.download_beir_dataset", return_value=beir_dataset):
+            result = run_beir_benchmark(
+                dataset="scifact",
+                heads=["fts5_enriched"],
+                cache_dir=tmp_path,
+                output_dir=tmp_path / "out_env",
+                max_queries=1,
+                max_enrich_corpus=0,  # defer to env var
+            )
+        skipped = next((hr for hr in result.heads if hr.head == "fts5_enriched"), None)
+        assert skipped is not None, "skipped HeadResult must be emitted"
+        assert skipped.enrichment_skipped is True
+
+    def test_gate_allows_small_corpus(
+        self, beir_dataset: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """When corpus < max_enrich_corpus, HeadE.build_index must be called."""
+        monkeypatch.delenv("HYDRAG_MAX_CORPUS_FOR_ENRICHMENT", raising=False)
+        with patch("hydrag_benchmark.beir_runner.download_beir_dataset", return_value=beir_dataset), \
+             patch("hydrag_benchmark.beir_runner.HeadE") as mock_head_e_cls:
+            mock_head = mock_head_e_cls.return_value
+            mock_head.__enter__ = lambda s: s
+            mock_head.__exit__ = lambda s, *a: None
+            mock_head.name = "fts5_enriched"
+            mock_head.retrieve.return_value = []
+            mock_head.build_index.return_value = None
+            mock_head.close = lambda: None
+            run_beir_benchmark(
+                dataset="scifact",
+                heads=["fts5_enriched"],
+                cache_dir=tmp_path,
+                output_dir=tmp_path / "out_small",
+                max_queries=1,
+                max_enrich_corpus=1_000_000,  # well above 3-doc fixture corpus
+            )
+        mock_head.build_index.assert_called_once()
+
+

@@ -189,7 +189,7 @@ class TestHeadA:
 
     def test_head_name(self, sample_chunks: list[Chunk]) -> None:
         head = HeadA(sample_chunks)
-        assert head.name == "head_a"
+        assert head.name == "symbol_graph"
 
     def test_graph_expansion(self, sample_chunks: list[Chunk]) -> None:
         """main.py imports fibonacci — should get expanded as neighbor."""

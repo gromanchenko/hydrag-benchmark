@@ -17,6 +17,7 @@ from typing import Any
 from hydrag import IndexedChunk, SQLiteFTSStore
 
 from .base import Chunk, ScoredChunk
+from .head_ids import HEAD_ID_ALIASES
 
 logger = logging.getLogger("hydrag_benchmark.heads.head_d")
 
@@ -40,7 +41,18 @@ class HeadD:
 
     @property
     def name(self) -> str:
-        return "head_d"
+        return HEAD_ID_ALIASES["head_d"]
+
+    def _fts_search_chunk_ids(self, query: str, n_results: int = 10) -> list[str]:
+        """Return ranked chunk IDs from FTS keyword search."""
+        texts = self._store.keyword_search(query, n_results)
+        chunk_ids: list[str] = []
+        for text in texts:
+            chunk_id = self._text_to_id.get(text)
+            if not chunk_id:
+                continue
+            chunk_ids.append(chunk_id)
+        return chunk_ids
 
     def build_index(self, chunks: list[Chunk]) -> None:
         """Index chunks into FTS5. No enrichment."""
@@ -57,14 +69,22 @@ class HeadD:
         count = self._store.index_documents(indexed_chunks)
         logger.info("Head D indexed %d chunks (FTS5 raw)", count)
 
+    def load_corpus_metadata(self, chunks: list[Chunk]) -> None:
+        """Populate in-memory lookup dicts WITHOUT touching the FTS5 index.
+
+        Use this after opening a pre-seeded .db file (T-977) so that
+        retrieve() can map FTS results back to Chunk objects.
+        """
+        for chunk in chunks:
+            self._chunks[chunk.chunk_id] = chunk
+            self._text_to_id[chunk.text] = chunk.chunk_id
+        logger.info("Head D loaded metadata for %d chunks (FTS5 snapshot)", len(chunks))
+
     def retrieve(self, query: str, n_results: int = 10) -> list[ScoredChunk]:
         """FTS5 BM25 retrieval via standard adapter interface."""
-        texts = self._store.keyword_search(query, n_results)
+        chunk_ids = self._fts_search_chunk_ids(query, n_results)
         results: list[ScoredChunk] = []
-        for rank, text in enumerate(texts):
-            chunk_id = self._text_to_id.get(text)
-            if not chunk_id:
-                continue
+        for rank, chunk_id in enumerate(chunk_ids):
             chunk = self._chunks.get(chunk_id)
             if not chunk:
                 continue

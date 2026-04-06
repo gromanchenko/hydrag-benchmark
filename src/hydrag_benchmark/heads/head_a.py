@@ -16,6 +16,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 
 from .base import Chunk, ScoredChunk
+from .head_ids import HEAD_ID_ALIASES
 
 # ── Symbol extraction patterns (best-effort regex, per §10 Non-Goals) ────────
 
@@ -191,7 +192,7 @@ class HeadA:
 
     @property
     def name(self) -> str:
-        return "head_a"
+        return HEAD_ID_ALIASES["head_a"]
 
     @property
     def symbol_index(self) -> SymbolIndex:
@@ -294,7 +295,7 @@ class HeadA:
             results.append(ScoredChunk(
                 chunk=self._chunks[chunk_id],
                 score=score / max_score,
-                head_origin="head_a",
+                head_origin=self.name,
             ))
         return results
 

@@ -172,6 +172,29 @@ class TestCLIRun:
         assert data["schema_version"] == "0.1"
 
 
+class TestCLIHeadMatrix:
+    def test_head_matrix_sqlite_symbol_graph_only(
+        self, bench_env: tuple[Path, Path, Path], capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        suite, corpus, _ = bench_env
+        rc = main([
+            "head-matrix", str(suite),
+            "--corpus-dir", str(corpus),
+            "--heads", "symbol_graph",
+            "--backends", "sqlite",
+            "--n-results", "2",
+        ])
+        assert rc == 0
+
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["schema_version"] == "0.1-matrix"
+        assert payload["heads"] == ["symbol_graph"]
+        assert payload["backends"] == ["sqlite"]
+        assert len(payload["matrix"]) == 1
+        assert payload["matrix"][0]["head"] == "symbol_graph"
+        assert payload["matrix"][0]["backend"] == "sqlite"
+
+
 class TestDeterminism:
     def test_seeded_runs_produce_identical_scores(
         self, bench_env: tuple[Path, Path, Path], capsys: pytest.CaptureFixture[str]

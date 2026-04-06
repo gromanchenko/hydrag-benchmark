@@ -10,6 +10,7 @@ Per RFC §5:
 from __future__ import annotations
 
 from .base import Chunk, ScoredChunk
+from .head_ids import HEAD_ID_ALIASES
 from .head_a import HeadA
 from .head_b import HeadB
 from ..quality_filter import cosine_similarity
@@ -36,7 +37,7 @@ class HeadC:
 
     @property
     def name(self) -> str:
-        return "head_c"
+        return HEAD_ID_ALIASES["head_c"]
 
     def retrieve(self, query: str, n_results: int = 10) -> list[ScoredChunk]:
         """Hybrid retrieval: Head A candidates reranked by Head B cosine sim."""
@@ -78,6 +79,6 @@ class HeadC:
             results.append(ScoredChunk(
                 chunk=scored.chunk,
                 score=combined_score,
-                head_origin="head_c",
+                head_origin=self.name,
             ))
         return results

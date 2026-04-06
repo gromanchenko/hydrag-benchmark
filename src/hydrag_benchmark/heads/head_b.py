@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .base import Chunk, Embedder, ScoredChunk
+from .head_ids import HEAD_ID_ALIASES
 from ..augmentation_cache import AugmentationCache
 from ..doc2query import Doc2QueryConfig, Doc2QueryGenerator
 from ..quality_filter import cosine_similarity, lexical_filter, semantic_filter
@@ -73,7 +74,7 @@ class HeadB:
 
     @property
     def name(self) -> str:
-        return "head_b"
+        return HEAD_ID_ALIASES["head_b"]
 
     @property
     def index(self) -> HeadBIndex | None:
@@ -192,7 +193,7 @@ class HeadB:
             chunk = self._index.chunks.get(chunk_id)
             if chunk:
                 results.append(ScoredChunk(
-                    chunk=chunk, score=score, head_origin="head_b",
+                    chunk=chunk, score=score, head_origin=self.name,
                 ))
         return results
 

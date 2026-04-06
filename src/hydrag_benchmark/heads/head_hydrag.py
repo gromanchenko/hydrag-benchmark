@@ -4,10 +4,9 @@ Wraps hydrag-core's ``hydrag_search()`` orchestrator (Head 0–3b) behind the
 benchmark ``RetrievalHead`` protocol. This lets the BEIR runner compare the
 full HydRAG pipeline against individual heads (D, E) on the same datasets.
 
-The adapter defaults to SQLiteFTSStore but can be swapped to any
-VectorStoreAdapter backend (e.g. SurrealDBAdapter) via the ``adapter``
-parameter. CRAG supervisor and semantic fallback are enabled by default
-(web fallback is disabled — offline benchmarking).
+The adapter uses SQLiteFTSStore as the VectorStoreAdapter backend, matching
+Head D/E's indexing. CRAG supervisor and semantic fallback are enabled by
+default (web fallback is disabled — offline benchmarking).
 
 Since ``hydrag_search()`` returns ``list[RetrievalResult]`` (text strings),
 we maintain a reverse index (text → chunk_id) built at index time to map
@@ -17,14 +16,17 @@ results back to BEIR doc IDs for metric computation.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from urllib import request
+from typing import Optional
 
 from hydrag import HydRAGConfig, IndexedChunk, SQLiteFTSStore, hydrag_search
 from hydrag.protocols import LLMProvider
 
 from .base import Chunk, ScoredChunk
+from .head_ids import HEAD_ID_ALIASES
 
 logger = logging.getLogger("hydrag_benchmark.heads.head_hydrag")
 
@@ -34,10 +36,39 @@ def _text_hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def _ollama_embed_fn(host: str, model: str):
+    """Build a small sync embedding function against the Ollama HTTP API."""
+
+    endpoint = f"{host.rstrip('/')}/api/embeddings"
+
+    def _embed(text: str) -> list[float]:
+        payload = json.dumps({"model": model, "prompt": text}).encode("utf-8")
+        req = request.Request(
+            endpoint,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with request.urlopen(req, timeout=60) as resp:  # noqa: S310
+            data = json.loads(resp.read().decode("utf-8"))
+
+        embedding = data.get("embedding")
+        if isinstance(embedding, list) and embedding:
+            return [float(x) for x in embedding]
+
+        embeddings = data.get("embeddings")
+        if isinstance(embeddings, list) and embeddings and isinstance(embeddings[0], list):
+            return [float(x) for x in embeddings[0]]
+
+        raise RuntimeError("Ollama embedding response missing vector")
+
+    return _embed
+
+
 class HeadHydrag:
     """Full HydRAG multi-headed retrieval benchmark head.
 
-    Index-time: chunks inserted into the storage adapter.
+    Index-time: chunks inserted into SQLiteFTSStore (same as Head D).
     Query-time: ``hydrag_search()`` runs the full 5-head pipeline:
       Head 0 — BM25 fast path
       Head 1 — hybrid retrieval
@@ -49,21 +80,49 @@ class HeadHydrag:
       - ``enable_crag``: run CRAG supervisor (default: True)
       - ``profile``: "prose" or "code" (default: "prose")
       - ``ollama_host`` / ``ollama_model``: for CRAG LLM calls
-      - ``adapter``: pre-configured VectorStoreAdapter backend
     """
 
     def __init__(
         self,
         db_path: str | Path = ":memory:",
         *,
+        db_backend: str = "sqlite",
         enable_crag: bool = True,
         profile: str = "prose",
         ollama_host: str = "http://localhost:11434",
         ollama_model: str = "qwen3:4b",
+        surrealdb_url: str = "ws://localhost:8000/rpc",
+        surrealdb_namespace: str = "hydrag_benchmark",
+        surrealdb_database: str = "default",
+        surrealdb_username: str | None = None,
+        surrealdb_password: str | None = None,
+        surrealdb_token: str | None = None,
+        surrealdb_embedding_model: str = "nomic-embed-text",
+        surrealdb_embedding_dim: int = 768,
+        surrealdb_allow_insecure_auth: bool = False,
         llm: Optional[LLMProvider] = None,
-        adapter: Any = None,
     ) -> None:
-        self._store = adapter if adapter is not None else SQLiteFTSStore(db_path)
+        self._backend = db_backend.strip().lower()
+        if self._backend == "sqlite":
+            self._store = SQLiteFTSStore(db_path)
+        elif self._backend == "surrealdb":
+            from hydrag.surreal_adapter import SurrealDBAdapter
+
+            # Surreal adapter requires an explicit connect lifecycle.
+            self._store = SurrealDBAdapter(
+                url=surrealdb_url,
+                embedding_dim=surrealdb_embedding_dim,
+                embed_fn=_ollama_embed_fn(ollama_host, surrealdb_embedding_model),
+                namespace=surrealdb_namespace,
+                database=surrealdb_database,
+                username=surrealdb_username,
+                password=surrealdb_password,
+                token=surrealdb_token,
+                allow_insecure_auth=surrealdb_allow_insecure_auth,
+            ).__enter__()
+        else:
+            raise ValueError("db_backend must be one of: sqlite, surrealdb")
+
         self._chunks: dict[str, Chunk] = {}
         self._text_to_chunk_id: dict[str, str] = {}  # text_hash → chunk_id
         self._llm = llm
@@ -82,7 +141,7 @@ class HeadHydrag:
 
     @property
     def name(self) -> str:
-        return "head_hydrag"
+        return HEAD_ID_ALIASES["head_hydrag"]
 
     def build_index(self, chunks: list[Chunk]) -> None:
         """Index chunks into SQLiteFTSStore and build reverse text→chunk_id map."""
@@ -97,7 +156,7 @@ class HeadHydrag:
                 raw_content=chunk.text,
             ))
         count = self._store.index_documents(indexed_chunks)
-        logger.info("HeadHydrag indexed %d chunks (SQLiteFTS)", count)
+        logger.info("HeadHydrag indexed %d chunks (backend=%s)", count, self._backend)
 
     def _resolve_chunk_id(self, text: str) -> str | None:
         """Map a retrieved text string back to its chunk_id via reverse index."""
@@ -137,7 +196,7 @@ class HeadHydrag:
             scored.append(ScoredChunk(
                 chunk=chunk,
                 score=rr.score,
-                head_origin="head_hydrag",
+                head_origin=self.name,
             ))
         return scored
 
