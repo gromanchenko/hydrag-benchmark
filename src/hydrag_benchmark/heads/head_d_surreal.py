@@ -62,9 +62,6 @@ class HeadDSurreal:
             password=password,
             allow_insecure_auth=True,  # localhost-only per S-003
             batch_size=batch_size,
-            assume_fresh=True,
-            deferred_index=True,
-            fts_fields=["raw_content"],
         )
         self._adapter._connect()
         logger.info(
@@ -81,6 +78,7 @@ class HeadDSurreal:
 
     def build_index(self, chunks: list[Chunk]) -> None:
         """Index chunks into SurrealDB via batch insert."""
+        self._source_map: dict[str, str] = {c.chunk_id: c.source for c in chunks}
         indexed_chunks: list[IndexedChunk] = [
             IndexedChunk(
                 chunk_id=chunk.chunk_id,
@@ -99,13 +97,15 @@ class HeadDSurreal:
         raw_rows = self._adapter._keyword_search_with_ids(
             query, n_results=n_results,
         )
+        source_map: dict[str, str] = getattr(self, "_source_map", {})
         results: list[ScoredChunk] = []
         for rank, row in enumerate(raw_rows):
+            cid = row["chunk_id"]
             results.append(
                 ScoredChunk(
                     chunk=Chunk(
-                        chunk_id=row["chunk_id"],
-                        source=row["source"],
+                        chunk_id=cid,
+                        source=source_map.get(cid, ""),
                         text=row["raw_content"],
                     ),
                     score=1.0 / (rank + 1),

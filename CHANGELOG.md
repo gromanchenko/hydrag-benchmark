@@ -1,9 +1,37 @@
+---
+id: HYDRAG-BENCH-CHANGELOG
+ticket: null
+category: report
+status: active
+created: '2026-03-14'
+updated: '2026-04-07'
+author: Claude-Sonnet-4.6
+summary: 'hydrag-benchmark version history — all notable changes in Keep a Changelog format, from v0.1.0 through v0.6.1'
+keywords:
+  hydrag-benchmark: 9
+  changelog: 8
+  versioning: 6
+  releases: 5
+  surrealdb: 6
+  gpu-metrics: 5
+  beir: 4
+  sys-sampler: 4
+---
+
 # Changelog
 
 All notable changes to `hydrag-benchmark` will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.6.1] - 2026-04-07
+
+### Fixed
+
+- **`head_d_surreal.py`**: Remove deprecated `SurrealDBAdapter` constructor args `assume_fresh`, `deferred_index`, and `fts_fields` (removed in hydrag-core 1.3.0). Build `_source_map` in `build_index()` and use it in `keyword_search()` so `Chunk.source` is populated from the in-memory map rather than a missing `row['source']` DB column.
+
+---
 
 ## [0.6.0] - 2026-04-06
 
