@@ -1,12 +1,10 @@
 ---
 id: HYDRAG-BENCH-CHANGELOG
-ticket: null
 category: report
 status: active
 created: '2026-03-14'
 updated: '2026-04-07'
-author: Claude-Sonnet-4.6
-summary: 'hydrag-benchmark version history — all notable changes in Keep a Changelog format, from v0.1.0 through v0.6.1'
+summary: 'hydrag-benchmark version history — all notable changes in Keep a Changelog format, from v0.1.0 through v0.6.2'
 keywords:
   hydrag-benchmark: 9
   changelog: 8
@@ -24,6 +22,15 @@ All notable changes to `hydrag-benchmark` will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.6.2] - 2026-04-07
+
+### Changed
+
+- Strip internal YAML frontmatter from PyPI long description via `hatch_build.py` metadata hook.
+- Remove `author` and `ticket` fields from public-facing docs.
+
+---
 
 ## [0.6.1] - 2026-04-07
 

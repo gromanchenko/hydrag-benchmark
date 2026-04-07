@@ -1,11 +1,9 @@
 ---
 id: HYDRAG-BENCH-README
-ticket: null
 category: guide
 status: active
 created: '2026-03-14'
 updated: '2026-04-07'
-author: Claude-Sonnet-4.6
 summary: 'hydrag-benchmark — local RAG benchmarking CLI for retrieval quality and latency analysis; installation, suites, and command reference'
 keywords:
   hydrag-benchmark: 9

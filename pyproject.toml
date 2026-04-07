@@ -4,9 +4,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hydrag-benchmark"
-version = "0.6.1"
+version = "0.6.2"
 description = "Local-only RAG benchmarking CLI — measures recall, MRR, chunk overlap, latency, and BEIR IR metrics"
-readme = "README.md"
+dynamic = ["readme"]
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
@@ -56,6 +56,8 @@ Documentation = "https://github.com/gromanchenko/hydrag-benchmark#readme"
 Repository = "https://github.com/gromanchenko/hydrag-benchmark"
 Changelog = "https://github.com/gromanchenko/hydrag-benchmark/blob/main/CHANGELOG.md"
 Issues = "https://github.com/gromanchenko/hydrag-benchmark/issues"
+
+[tool.hatch.metadata.hooks.custom]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/hydrag_benchmark"]
