@@ -298,6 +298,7 @@ def _find_snapshot_db(
 
 from .beir_loader import download_beir_dataset, load_beir_corpus, load_beir_qrels, load_beir_queries
 from .heads.base import Chunk, RetrievalHead, ScoredChunk
+from .sys_sampler import PhaseSampler
 from .heads.head_a import HeadA
 from .heads.head_b import HeadB
 from .heads.head_c import HeadC
@@ -429,6 +430,8 @@ class HeadResult:
     qps: float = 0.0
     peak_rss_mb: float = 0.0
     peak_vram_mb: float = 0.0
+    # T-1002: per-phase sys_metrics from PhaseSampler (CPU, RAM, disk, net, GPU).
+    sys_metrics: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -803,6 +806,8 @@ def run_beir_benchmark(
             _skip_index = True
 
         t0 = time.monotonic()
+        index_sampler_result = None
+        query_sampler_result = None
         try:
             if _skip_index:
                 # T-977: pre-seeded snapshot — populate dicts only, FTS5 index
@@ -811,20 +816,31 @@ def run_beir_benchmark(
                 index_time = time.monotonic() - t0
                 logger.info("Loaded snapshot metadata for %s in %.1fs (skipped FTS5 indexing)", head_name, index_time)
             elif head_name not in ("symbol_graph", "hybrid_graph_dense"):
-                head.build_index(chunks)
-                index_time = time.monotonic() - t0
+                with PhaseSampler("index") as idx_sampler:
+                    head.build_index(chunks)
+                index_sampler_result = idx_sampler.result()
+                index_time = index_sampler_result.duration_s
                 logger.info("Indexed %d chunks in %.1fs (%s)", n_corpus, index_time, head_name)
             else:
                 index_time = time.monotonic() - t0
 
             # Evaluate
-            head_result = _evaluate_head(
-                head, queries, qrels, chunk_to_doc, dataset, n_corpus,
-            )
+            with PhaseSampler("query") as qry_sampler:
+                head_result = _evaluate_head(
+                    head, queries, qrels, chunk_to_doc, dataset, n_corpus,
+                )
+            query_sampler_result = qry_sampler.result()
             # T-177: attach resource metrics to the result.
             head_result.index_time_s = round(index_time, 3)
             head_result.peak_rss_mb = _peak_rss_mb()
             head_result.peak_vram_mb = _peak_vram_mb()
+            # T-1002: attach per-phase sys_metrics.
+            hw: dict[str, Any] = {}
+            if index_sampler_result is not None:
+                hw["index"] = index_sampler_result.to_dict()
+            if query_sampler_result is not None:
+                hw["query"] = query_sampler_result.to_dict()
+            head_result.sys_metrics = hw
             result.heads.append(head_result)
 
             # Summary

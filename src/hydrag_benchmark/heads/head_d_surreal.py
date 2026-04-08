@@ -47,6 +47,7 @@ class HeadDSurreal:
         username: str | None = None,
         password: str | None = None,
         batch_size: int = 2000,
+        deferred_index: bool = True,
     ) -> None:
         run_token = uuid.uuid4().hex[:8]
         db_name = database or f"beir_{run_token}"
@@ -62,14 +63,17 @@ class HeadDSurreal:
             password=password,
             allow_insecure_auth=True,  # localhost-only per S-003
             batch_size=batch_size,
+            deferred_index=deferred_index,
+            assume_fresh=True,  # fresh DB per run; skip per-batch existence SELECT
         )
         self._adapter._connect()
         logger.info(
-            "HeadDSurreal connected to %s ns=%s db=%s (batch=%d, deferred_index)",
+            "HeadDSurreal connected to %s ns=%s db=%s (batch=%d, deferred_index=%s)",
             surrealdb_url,
             namespace,
             db_name,
             batch_size,
+            deferred_index,
         )
 
     @property
