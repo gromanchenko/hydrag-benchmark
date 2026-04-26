@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hydrag-benchmark"
-version = "0.7.2"
+version = "0.8.0"
 description = "Local-only RAG benchmarking CLI — measures recall, MRR, chunk overlap, latency, and BEIR IR metrics"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -28,7 +28,7 @@ classifiers = [
 ]
 keywords = ["rag", "benchmark", "retrieval", "hydrag", "recall", "mrr"]
 dependencies = [
-    "hydrag-core[chromadb]>=1.2.0",
+    "hydrag-core[chromadb]>=1.4.0",
     "pyyaml>=6.0",
 ]
 
