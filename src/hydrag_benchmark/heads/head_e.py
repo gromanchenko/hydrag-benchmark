@@ -56,6 +56,13 @@ class HeadE(HeadD):
         indexed_chunks = []
         for chunk in chunks:
             self._chunks[chunk.chunk_id] = chunk
+            # B-01: _fts_search_chunk_ids (inherited from HeadD) maps FTS5
+            # results back to chunk_id via self._text_to_id, keyed on
+            # raw_content (== chunk.text -- see SQLiteFTSStore._fts_search,
+            # which always SELECTs raw_content regardless of enrichment).
+            # This head never populated it, so every real query returned
+            # zero results.
+            self._text_to_id[chunk.text] = chunk.chunk_id
             indexed_chunks.append(IndexedChunk(
                 chunk_id=chunk.chunk_id,
                 source=chunk.source,
