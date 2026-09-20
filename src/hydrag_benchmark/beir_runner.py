@@ -304,7 +304,6 @@ from .heads.head_b import HeadB
 from .heads.head_c import HeadC
 from .heads.head_d import HeadD
 from .heads.head_d_chroma import HeadDChroma
-from .heads.head_d_surreal import HeadDSurreal
 from .heads.head_e import HeadE
 from .heads.head_hydrag import HeadHydrag
 from .heads.head_ids import canonicalize_head_ids, normalize_head_id
@@ -782,6 +781,12 @@ def run_beir_benchmark(
         elif head_name == "surreal_fts":
             # T-964: SurrealDB disjunctive FTS head — database name is per-dataset
             # to keep index runs isolated when multiple datasets share the same instance.
+            # T-5060: imported lazily -- surrealdb is not a declared dependency
+            # of hydrag-benchmark (only hydrag-core[chromadb] is), so a
+            # module-level import here would break every import of this
+            # module whenever surrealdb isn't installed.
+            from .heads.head_d_surreal import HeadDSurreal
+
             surreal_db_name = f"beir_{dataset}_{uuid.uuid4().hex[:8]}"
             head = HeadDSurreal(
                 surrealdb_url=surrealdb_url,
