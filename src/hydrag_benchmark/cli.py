@@ -122,6 +122,7 @@ def _build_parser() -> argparse.ArgumentParser:
     beir_p.add_argument("--cache-dir", type=Path, default=None, help="BEIR dataset cache directory")
     beir_p.add_argument("--output-dir", type=Path, default=None, help="Directory to write JSON results")
     beir_p.add_argument("--max-queries", type=int, default=0, help="Limit queries (0 = all)")
+    beir_p.add_argument("--seed", type=int, default=42, help="Random seed for --max-queries sampling (default: 42)")
     beir_p.add_argument("--ollama-model", default="qwen3:4b", help="Ollama model for Head E enrichment")
     beir_p.add_argument(
         "--max-corpus-for-enrichment",
@@ -438,6 +439,7 @@ def _cmd_beir(args: argparse.Namespace) -> int:
         cache_dir=args.cache_dir,
         output_dir=args.output_dir,
         max_queries=args.max_queries,
+        seed=args.seed,
         ollama_model=args.ollama_model,
         ollama_host=args.ollama_host,
         embedding_model=args.embedding_model,

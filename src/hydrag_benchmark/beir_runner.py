@@ -25,6 +25,7 @@ import logging
 import math
 import os
 import platform
+import random
 import resource
 import shutil
 import sqlite3
@@ -580,6 +581,7 @@ def run_beir_benchmark(
     cache_dir: Path | None = None,
     output_dir: Path | None = None,
     max_queries: int = 0,
+    seed: int = 42,
     *,
     ollama_model: str = "qwen3:4b",
     ollama_host: str = "http://localhost:11434",
@@ -608,7 +610,9 @@ def run_beir_benchmark(
         heads: Which heads to run. Default: ["fts5_baseline", "fts5_enriched"].
         cache_dir: Directory to cache downloaded BEIR datasets.
         output_dir: Directory to write JSON results.
-        max_queries: Limit queries (0 = all).
+        max_queries: Limit queries (0 = all), selected via a seeded random
+            sample of the queries that have qrels, not the first N.
+        seed: Random seed for max_queries sampling (B-02/B-03).
         ollama_model: Model for Head E enrichment.
         ollama_host: Ollama API endpoint.
         embedding_model: Dense embedding model for Head B/C.
@@ -644,8 +648,15 @@ def run_beir_benchmark(
     qrels = load_beir_qrels(dataset_dir)
 
     if max_queries > 0:
-        # Filter to queries that have qrels
-        valid_qids = [qid for qid in queries if qid in qrels][:max_queries]
+        # B-02/B-03: sample with a seeded RNG over a deterministically
+        # ordered candidate list, not a bare [:max_queries] slice -- the
+        # latter always picked the same first N regardless of any seed,
+        # and only ever exercised whichever queries happened to load
+        # first. The corpus itself is never reduced here.
+        candidate_qids = sorted(qid for qid in queries if qid in qrels)
+        valid_qids = random.Random(seed).sample(
+            candidate_qids, min(max_queries, len(candidate_qids))
+        )
         queries = {qid: queries[qid] for qid in valid_qids}
 
     # Convert corpus to chunks

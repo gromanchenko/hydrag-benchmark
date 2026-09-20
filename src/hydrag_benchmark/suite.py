@@ -56,7 +56,9 @@ class BenchSuite:
             version=data.get("version", "1.0"),
             strategy=strategy_override or env.get("strategy", "hydrag"),
             n_results=n_results_override or int(env.get("n_results", 5)),
-            seed=seed_override or int(data.get("seed", 42)),
+            # T-5052 A09/B-03: seed=0 is a legitimate explicit value, not
+            # "unset" -- `or` would silently discard it.
+            seed=seed_override if seed_override is not None else int(data.get("seed", 42)),
             cases=cases,
             description=data.get("description", ""),
         )

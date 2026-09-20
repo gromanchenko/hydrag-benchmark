@@ -62,3 +62,12 @@ class TestBenchSuite:
         p.write_text(SUITE_YAML)
         suite = BenchSuite.from_yaml(p, seed_override=99)
         assert suite.seed == 99
+
+    def test_seed_override_zero_is_honoured(self, tmp_path: Path) -> None:
+        """T-5052 A09/B-03: seed=0 is a legitimate explicit override, not
+        'no override'. ``seed_override or ...`` silently discarded it and
+        fell back to the YAML file's own seed (42 here)."""
+        p = tmp_path / "suite.yaml"
+        p.write_text(SUITE_YAML)
+        suite = BenchSuite.from_yaml(p, seed_override=0)
+        assert suite.seed == 0
