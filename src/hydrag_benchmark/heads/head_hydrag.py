@@ -197,6 +197,16 @@ class HeadHydrag:
                 chunk=chunk,
                 score=rr.score,
                 head_origin=self.name,
+                # B-05: preserve which internal hydrag-core head actually
+                # produced this result, and its fast-path/crag-skip flags
+                # -- otherwise every result is indistinguishably labeled
+                # with this benchmark head's own static name, and a
+                # BM25-only run looks identical to a full-pipeline run.
+                metadata={
+                    "hydrag_head_origin": rr.head_origin,
+                    "fast_path_triggered": bool(rr.metadata.get("fast_path_triggered", False)),
+                    "crag_skipped": bool(rr.metadata.get("crag_skipped", False)),
+                },
             ))
         return scored
 

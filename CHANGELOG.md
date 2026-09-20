@@ -3,8 +3,8 @@ id: HYDRAG-BENCH-CHANGELOG
 category: report
 status: active
 created: '2026-03-14'
-updated: '2026-04-07'
-summary: 'hydrag-benchmark version history — all notable changes in Keep a Changelog format, from v0.1.0 through v0.6.2'
+updated: '2026-09-21'
+summary: 'hydrag-benchmark version history — all notable changes in Keep a Changelog format, from v0.1.0 through v0.8.0; releases 0.6.3-0.7.x were not recorded'
 keywords:
   hydrag-benchmark: 9
   changelog: 8
@@ -22,6 +22,24 @@ All notable changes to `hydrag-benchmark` will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.8.0] - 2026-09-21
+
+### Fixed
+
+Findings from the T-5045 deepdive review (`docs/reports/HYDRAG_DEEPDIVE_IMPROVEMENT_PROPOSALS-Claude-Fable-5.1.md`), tracked as T-5052 and its T-5060 prerequisite:
+
+- **T-5060**: `beir_runner.py` imported `HeadDSurreal` at module level, which transitively required the `surrealdb` package even though it is not a declared dependency -- every import of `hydrag_benchmark.beir_runner` (including this package's own test suite) failed under a plain `pip install -e ".[dev]"`. Import moved to be lazy, inside the `surreal_fts` branch where it is actually used.
+- **B-01**: `HeadE.build_index()` populated `self._chunks` but never `self._text_to_id`, so every real `fts5_enriched` query silently returned zero results (the only prior test mocked the head entirely).
+- **B-02/B-03**: `run_beir_benchmark()`'s `--max-queries` took the first N queries regardless of any seed; added a `seed` parameter (wired to `--seed` on the `beir` CLI subcommand) so `--max-queries` samples with a seeded RNG instead. `BenchSuite.from_yaml`'s `seed_override=0` was silently discarded by an `or` check; 0 is now honoured as an explicit value.
+- **B-04**: verified already fixed in a prior release (`_STRATEGY_HEADS`/`strategy_note`, v0.5.1) -- added missing regression coverage, no source change needed.
+- **B-05**: `HeadHydrag.retrieve()` overwrote every result's internal `head_origin` with its own static benchmark-head label and discarded hydrag-core's `fast_path_triggered`/`crag_skipped` metadata, so a run in which every result actually came from Head 0's BM25 fast path was indistinguishable from a full-pipeline run. `ScoredChunk` gained a `metadata` field; `QueryResult`/`HeadResult` now record per-query and aggregate `head_origin_counts`, `fast_path_count`, and `crag_skipped_count`.
+
+### Changed
+
+- **Changelog gap**: releases between `0.6.2` and `0.8.0` (including at least `0.7.2`) were published but never given changelog entries. That gap is not filled retroactively here; it is recorded as a known, permanent, unrecorded gap in the history rather than left implicit.
+
+---
 
 ## [0.6.2] - 2026-04-07
 

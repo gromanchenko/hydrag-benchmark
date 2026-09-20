@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass, field
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 @dataclass
@@ -38,6 +38,12 @@ class ScoredChunk:
     chunk: Chunk
     score: float
     head_origin: str
+    # T-5052 A11/B-05: per-result provenance from heads (like HeadHydrag)
+    # whose head_origin is a static benchmark-head label, not the internal
+    # head that actually produced this specific result. Other heads leave
+    # this empty. Keys used: "hydrag_head_origin", "fast_path_triggered",
+    # "crag_skipped".
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @runtime_checkable

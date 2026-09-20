@@ -406,6 +406,15 @@ class QueryResult:
     latency_ms: float
     n_relevant: int
     n_retrieved_relevant: int
+    # T-5052 A11/B-05: counts of which internal hydrag-core head actually
+    # produced each retrieved result (from ScoredChunk.metadata, populated
+    # only by HeadHydrag today), plus how many were fast-path/CRAG-skipped.
+    # Empty/zero for heads that don't report this (Head D, Head E, ...) --
+    # never fabricated. This is what makes a BM25-only "hydrag_full" run
+    # visible instead of indistinguishable from a full-pipeline run.
+    head_origin_counts: dict[str, int] = field(default_factory=dict)
+    fast_path_count: int = 0
+    crag_skipped_count: int = 0
 
 
 @dataclass
@@ -422,6 +431,12 @@ class HeadResult:
     avg_map_at_10: float
     avg_latency_ms: float
     queries: list[QueryResult] = field(default_factory=list)
+    # T-5052 A11/B-05: aggregate of every query's head_origin_counts/
+    # fast_path_count/crag_skipped_count, visible without inspecting each
+    # individual query.
+    head_origin_counts: dict[str, int] = field(default_factory=dict)
+    fast_path_count: int = 0
+    crag_skipped_count: int = 0
     # T-975: set to True when fts5_enriched was skipped due to corpus-size gate.
     # Downstream consumers should treat all metric fields as None/null when True.
     enrichment_skipped: bool = False
@@ -541,6 +556,21 @@ def _evaluate_head(
 
         n_hit = sum(1 for did in doc_ids[:k] if did in qrel)
 
+        # B-05: tally which internal head produced each result, plus
+        # fast-path/CRAG-skip flags, from ScoredChunk.metadata (empty for
+        # heads that don't report it -- never fabricated).
+        query_head_origin_counts: dict[str, int] = {}
+        query_fast_path_count = 0
+        query_crag_skipped_count = 0
+        for sc in scored_chunks:
+            origin = sc.metadata.get("hydrag_head_origin")
+            if origin:
+                query_head_origin_counts[origin] = query_head_origin_counts.get(origin, 0) + 1
+            if sc.metadata.get("fast_path_triggered"):
+                query_fast_path_count += 1
+            if sc.metadata.get("crag_skipped"):
+                query_crag_skipped_count += 1
+
         results.append(QueryResult(
             query_id=qid,
             query=qtext,
@@ -552,12 +582,22 @@ def _evaluate_head(
             latency_ms=elapsed_ms,
             n_relevant=len(qrel),
             n_retrieved_relevant=n_hit,
+            head_origin_counts=query_head_origin_counts,
+            fast_path_count=query_fast_path_count,
+            crag_skipped_count=query_crag_skipped_count,
         ))
 
     n = len(results)
     total_latency_ms = sum(r.latency_ms for r in results)
     # T-177: QPS = n_queries / total_search_time_s (wall-clock serial queries).
     qps = round(n / (total_latency_ms / 1000.0), 2) if total_latency_ms > 0 else 0.0
+
+    # B-05: aggregate per-query provenance across the whole head result.
+    agg_head_origin_counts: dict[str, int] = {}
+    for r in results:
+        for origin, count in r.head_origin_counts.items():
+            agg_head_origin_counts[origin] = agg_head_origin_counts.get(origin, 0) + count
+
     return HeadResult(
         run_id=f"beir-{uuid.uuid4().hex[:8]}",
         timestamp=datetime.now(timezone.utc).isoformat(),
@@ -572,6 +612,9 @@ def _evaluate_head(
         avg_latency_ms=round(total_latency_ms / n, 2) if n else 0.0,
         queries=results,
         qps=qps,
+        head_origin_counts=agg_head_origin_counts,
+        fast_path_count=sum(r.fast_path_count for r in results),
+        crag_skipped_count=sum(r.crag_skipped_count for r in results),
     )
 
 

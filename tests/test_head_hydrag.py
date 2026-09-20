@@ -164,6 +164,58 @@ class TestHeadHydragRetrieval:
         assert all(r.chunk.chunk_id == "doc-1" for r in results)
 
 
+# ── Head-origin / fast-path visibility (T-5052 A11/B-05) ────────────────────
+
+
+class TestHeadHydragOriginMetadata:
+    """B-05: hydrag_full previously overwrote every result's per-result
+    head_origin/metadata with its own static benchmark-head name
+    ("hydrag_full"), and dropped hydrag-core's fast_path_triggered/
+    crag_skipped flags entirely. A run in which every result actually
+    came from Head 0's BM25 fast path was indistinguishable, in the
+    output, from a run that genuinely exercised CRAG/fallback."""
+
+    def test_retrieve_preserves_internal_head_origin_and_flags(
+        self, sample_chunks: list[Chunk]
+    ) -> None:
+        from hydrag.fusion import RetrievalResult
+
+        mock_results = [
+            RetrievalResult(
+                text=sample_chunks[0].text,
+                source="",
+                score=0.9,
+                head_origin="head_0",
+                trust_level="local",
+                metadata={"fast_path_triggered": True, "crag_skipped": True},
+            ),
+            RetrievalResult(
+                text=sample_chunks[2].text,
+                source="",
+                score=0.7,
+                head_origin="head_3a",
+                trust_level="local",
+                metadata={},
+            ),
+        ]
+
+        with HeadHydrag() as head:
+            head.build_index(sample_chunks)
+            with patch("hydrag_benchmark.heads.head_hydrag.hydrag_search", return_value=mock_results):
+                results = head.retrieve("machine learning", n_results=5)
+
+        # The benchmark-head label is unchanged (still "hydrag_full") ...
+        assert all(r.head_origin == "hydrag_full" for r in results)
+        # ... but the internal hydrag-core head that actually produced each
+        # result, and its fast-path/crag-skip flags, must survive.
+        assert results[0].metadata.get("hydrag_head_origin") == "head_0"
+        assert results[0].metadata.get("fast_path_triggered") is True
+        assert results[0].metadata.get("crag_skipped") is True
+        assert results[1].metadata.get("hydrag_head_origin") == "head_3a"
+        assert results[1].metadata.get("fast_path_triggered") is False
+        assert results[1].metadata.get("crag_skipped") is False
+
+
 # ── Config Tests ─────────────────────────────────────────────────────────────
 
 
