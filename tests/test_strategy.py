@@ -195,6 +195,60 @@ class TestStrategyDeterminism:
             assert c1["mrr"] == c2["mrr"]
 
 
+class TestStrategyNoteDedup:
+    """T-5052 A10/B-04: hybrid/crag/hydrag all delegate to the same
+    ChromaDB collection.query() at the storage layer (there is no
+    separate BM25/semantic backend). A run must not report those as
+    unexplained separate ablation arms -- it must say, once, why the
+    underlying retrieval call is shared, so the numbers are read as
+    pipeline-overhead comparisons rather than a method compared with
+    itself."""
+
+    @pytest.mark.parametrize("strategy", ["hybrid", "crag", "hydrag"])
+    def test_shared_backend_strategies_explain_why(
+        self,
+        strategy: str,
+        bench_env: tuple[Path, Path, Path],
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        suite, corpus, _ = bench_env
+        main([
+            "run", str(suite),
+            "--strategy", strategy,
+            "--corpus-dir", str(corpus),
+        ])
+        data = json.loads(capsys.readouterr().out)
+        note = data["strategy_note"]
+        assert note, f"strategy {strategy!r} shares its backend query but has no strategy_note"
+        assert "collection.query" in note or "same" in note.lower()
+
+    def test_similarity_baseline_has_no_shared_backend_caveat(
+        self, bench_env: tuple[Path, Path, Path], capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """similarity is the true baseline (bypasses hydrag_search
+        entirely) -- it must not carry the same-backend disclaimer."""
+        suite, corpus, _ = bench_env
+        main([
+            "run", str(suite),
+            "--strategy", "similarity",
+            "--corpus-dir", str(corpus),
+        ])
+        data = json.loads(capsys.readouterr().out)
+        assert data["strategy_note"] == ""
+
+    def test_different_shared_backend_strategies_have_distinct_notes(
+        self, bench_env: tuple[Path, Path, Path], capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Each of hybrid/crag/hydrag explains its own pipeline
+        difference, not a copy-pasted identical string."""
+        suite, corpus, _ = bench_env
+        notes = {}
+        for strategy in ("hybrid", "crag", "hydrag"):
+            main(["run", str(suite), "--strategy", strategy, "--corpus-dir", str(corpus)])
+            notes[strategy] = json.loads(capsys.readouterr().out)["strategy_note"]
+        assert len(set(notes.values())) == 3, "each strategy's note should describe its own overhead"
+
+
 class TestChromaDBAdapter:
     """Unit tests for the _ChromaDBAdapter protocol implementation."""
 
