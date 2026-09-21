@@ -10,7 +10,7 @@ Per RFC §5:
 from __future__ import annotations
 
 from ..quality_filter import cosine_similarity
-from .base import ScoredChunk
+from .base import Chunk, ScoredChunk
 from .head_a import HeadA
 from .head_b import HeadB
 from .head_ids import HEAD_ID_ALIASES
@@ -38,6 +38,11 @@ class HeadC:
     @property
     def name(self) -> str:
         return HEAD_ID_ALIASES["head_c"]
+
+    def build_index(self, chunks: list[Chunk]) -> None:
+        """No-op: HeadC is built from pre-built HeadA/HeadB instances at
+        construction time. Exists so every Head* class satisfies the
+        same RetrievalHead protocol (T-5061)."""
 
     def retrieve(self, query: str, n_results: int = 10) -> list[ScoredChunk]:
         """Hybrid retrieval: Head A candidates reranked by Head B cosine sim."""

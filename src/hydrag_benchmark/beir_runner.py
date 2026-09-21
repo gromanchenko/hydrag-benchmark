@@ -752,6 +752,10 @@ def run_beir_benchmark(
         logger.info("Running head: %s", head_name)
         closeable = True
 
+        # T-5061: explicit Protocol annotation, not narrowed from the first
+        # branch's concrete class -- every branch below assigns a different
+        # Head* class, all of which satisfy RetrievalHead structurally.
+        head: RetrievalHead
         if head_name == "symbol_graph":
             # HeadA takes chunks in constructor (builds index internally)
             t0 = time.monotonic()
@@ -871,6 +875,10 @@ def run_beir_benchmark(
             if _skip_index:
                 # T-977: pre-seeded snapshot — populate dicts only, FTS5 index
                 # is already in the .db file.  Saves ~100% of index_time.
+                # load_corpus_metadata is HeadD-specific (not in the shared
+                # RetrievalHead protocol); _skip_index is only ever True for
+                # head_name == "fts5_baseline", which always assigns HeadD.
+                assert isinstance(head, HeadD)
                 head.load_corpus_metadata(chunks)
                 index_time = time.monotonic() - t0
                 logger.info("Loaded snapshot metadata for %s in %.1fs (skipped FTS5 indexing)", head_name, index_time)

@@ -206,6 +206,10 @@ class HeadA:
     def ref_graph(self) -> Graph:
         return self._ref_graph
 
+    def build_index(self, chunks: list[Chunk]) -> None:
+        """No-op: HeadA indexes in its own constructor. Exists so every
+        Head* class satisfies the same RetrievalHead protocol (T-5061)."""
+
     def _build_indexes(self, chunks: list[Chunk]) -> None:
         """Build symbol index, call graph, and reference graph from chunks."""
         for chunk in chunks:
