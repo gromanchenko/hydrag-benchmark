@@ -60,10 +60,7 @@ def bench_env(tmp_path: Path) -> tuple[Path, Path, Path]:
 
 class TestSupportedStrategies:
     def test_supported_strategies_constant(self) -> None:
-        assert "similarity" in SUPPORTED_STRATEGIES
-        assert "hybrid" in SUPPORTED_STRATEGIES
-        assert "crag" in SUPPORTED_STRATEGIES
-        assert "hydrag" in SUPPORTED_STRATEGIES
+        assert SUPPORTED_STRATEGIES == {"similarity", "hydrag"}
 
     def test_unknown_strategy_raises(
         self, bench_env: tuple[Path, Path, Path], capsys: pytest.CaptureFixture[str]
@@ -105,42 +102,6 @@ class TestSimilarityStrategy:
         ])
         data = json.loads(capsys.readouterr().out)
         assert data["summary"]["recall_at_k"] > 0.0
-
-
-class TestHybridStrategy:
-    """Hybrid — hydrag_search with head_1 only."""
-
-    def test_hybrid_produces_results(
-        self, bench_env: tuple[Path, Path, Path], capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        suite, corpus, _ = bench_env
-        rc = main([
-            "run", str(suite),
-            "--strategy", "hybrid",
-            "--corpus-dir", str(corpus),
-        ])
-        assert rc == 0
-        data = json.loads(capsys.readouterr().out)
-        assert data["strategy"] == "hybrid"
-        assert len(data["cases"]) == 2
-
-
-class TestCragStrategy:
-    """CRAG — heads 1 + 2 + 3a. CRAG falls back gracefully without LLM."""
-
-    def test_crag_produces_results(
-        self, bench_env: tuple[Path, Path, Path], capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        suite, corpus, _ = bench_env
-        rc = main([
-            "run", str(suite),
-            "--strategy", "crag",
-            "--corpus-dir", str(corpus),
-        ])
-        assert rc == 0
-        data = json.loads(capsys.readouterr().out)
-        assert data["strategy"] == "crag"
-        assert len(data["cases"]) == 2
 
 
 class TestHydragStrategy:
@@ -195,31 +156,38 @@ class TestStrategyDeterminism:
 
 
 class TestStrategyNoteDedup:
-    """T-5052 A10/B-04: hybrid/crag/hydrag all delegate to the same
-    ChromaDB collection.query() at the storage layer (there is no
-    separate BM25/semantic backend). A run must not report those as
-    unexplained separate ablation arms -- it must say, once, why the
-    underlying retrieval call is shared, so the numbers are read as
-    pipeline-overhead comparisons rather than a method compared with
-    itself."""
+    """T-5052 A17: one backend query is one reported strategy."""
 
-    @pytest.mark.parametrize("strategy", ["hybrid", "crag", "hydrag"])
-    def test_shared_backend_strategies_explain_why(
+    def test_hydrag_reports_shared_backend_once(
         self,
-        strategy: str,
         bench_env: tuple[Path, Path, Path],
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         suite, corpus, _ = bench_env
         main([
             "run", str(suite),
-            "--strategy", strategy,
+            "--strategy", "hydrag",
             "--corpus-dir", str(corpus),
         ])
         data = json.loads(capsys.readouterr().out)
         note = data["strategy_note"]
-        assert note, f"strategy {strategy!r} shares its backend query but has no strategy_note"
-        assert "collection.query" in note or "same" in note.lower()
+        assert data["strategy"] == "hydrag"
+        assert "reported once" in note
+        assert "collection.query" in note
+
+    @pytest.mark.parametrize("alias", ["hybrid", "crag"])
+    def test_shared_backend_aliases_fail_instead_of_creating_duplicate_results(
+        self,
+        alias: str,
+        bench_env: tuple[Path, Path, Path],
+    ) -> None:
+        suite, corpus, _ = bench_env
+        with pytest.raises(ValueError, match="not an independent retrieval strategy"):
+            main([
+                "run", str(suite),
+                "--strategy", alias,
+                "--corpus-dir", str(corpus),
+            ])
 
     def test_similarity_baseline_has_no_shared_backend_caveat(
         self, bench_env: tuple[Path, Path, Path], capsys: pytest.CaptureFixture[str]
@@ -234,19 +202,6 @@ class TestStrategyNoteDedup:
         ])
         data = json.loads(capsys.readouterr().out)
         assert data["strategy_note"] == ""
-
-    def test_different_shared_backend_strategies_have_distinct_notes(
-        self, bench_env: tuple[Path, Path, Path], capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Each of hybrid/crag/hydrag explains its own pipeline
-        difference, not a copy-pasted identical string."""
-        suite, corpus, _ = bench_env
-        notes = {}
-        for strategy in ("hybrid", "crag", "hydrag"):
-            main(["run", str(suite), "--strategy", strategy, "--corpus-dir", str(corpus)])
-            notes[strategy] = json.loads(capsys.readouterr().out)["strategy_note"]
-        assert len(set(notes.values())) == 3, "each strategy's note should describe its own overhead"
-
 
 class TestChromaDBAdapter:
     """Unit tests for the _ChromaDBAdapter protocol implementation."""

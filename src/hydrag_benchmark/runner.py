@@ -162,15 +162,8 @@ def _chunk_text(text: str, source: str, max_chars: int = 2000) -> list[tuple[str
 
 # ── ChromaDB adapter ──────────────────────────────────────────────────────────
 
-SUPPORTED_STRATEGIES: frozenset[str] = frozenset({
-    "similarity", "hybrid", "crag", "hydrag",
-})
-
-_STRATEGY_HEADS: dict[str, set[str]] = {
-    "hybrid": {"head_1"},
-    "crag": {"head_1", "head_2_crag", "head_3a_semantic"},
-    # "hydrag" uses all defaults (no heads= kwarg)
-}
+SUPPORTED_STRATEGIES: frozenset[str] = frozenset({"similarity", "hydrag"})
+_SHARED_BACKEND_ALIASES: frozenset[str] = frozenset({"hybrid", "crag"})
 
 
 class _ChromaDBAdapter:
@@ -210,10 +203,20 @@ def _search_fn(strategy: str, collection: Any, n_results: int) -> Any:
 
     Strategies:
         similarity — Direct chromadb query (baseline, no hydrag-core).
-        hybrid     — hydrag_search with head_1 only (no CRAG/fallbacks).
-        crag       — hydrag_search with heads 1 + 2 + 3a.
         hydrag     — Full hydrag_search pipeline (all default heads).
+
+    ``hybrid`` and ``crag`` are not separate benchmark arms: this adapter's
+    semantic, keyword, and hybrid methods all resolve to the same ChromaDB
+    query. Reporting those aliases as independent retrieval strategies would
+    compare one backend query with itself.
     """
+    if strategy in _SHARED_BACKEND_ALIASES:
+        raise ValueError(
+            f"Strategy {strategy!r} is not an independent retrieval strategy: "
+            "the ChromaDB adapter resolves semantic, keyword, and hybrid "
+            "retrieval to the same collection.query() call. Use 'hydrag' to "
+            "report that shared-backend pipeline once."
+        )
     if strategy not in SUPPORTED_STRATEGIES:
         raise ValueError(
             f"Unknown strategy {strategy!r}. "
@@ -231,15 +234,12 @@ def _search_fn(strategy: str, collection: Any, n_results: int) -> Any:
 
     adapter = _ChromaDBAdapter(collection, n_results)
     cfg = HydRAGConfig()
-    heads = _STRATEGY_HEADS.get(strategy)
-
     def _dispatch(query: str) -> list[str]:
         results = hydrag_search(
             adapter,
             query,
             n_results=n_results,
             config=cfg,
-            heads=heads,
         )
         return [r.text for r in results]
 
@@ -313,15 +313,9 @@ def run_benchmark(
 
     _STRATEGY_NOTES = {
         "similarity": "",
-        "hybrid": "ChromaDB-backed: semantic/keyword/hybrid all delegate to the same "
-                  "collection.query(). Differences measure pipeline architecture "
-                  "(RRF fusion, head gating), not underlying retrieval.",
-        "crag": "ChromaDB-backed: semantic/keyword/hybrid all delegate to the same "
-                "collection.query(). Differences measure CRAG gating overhead, "
-                "not retrieval strategy.",
         "hydrag": "ChromaDB-backed: semantic/keyword/hybrid all delegate to the same "
-                  "collection.query(). Differences measure full pipeline overhead "
-                  "(head gating, CRAG, fallbacks), not underlying retrieval.",
+                  "collection.query(). The shared-backend pipeline is reported once; "
+                  "hybrid and crag are not exposed as separate retrieval arms.",
     }
 
     result = RunResult(

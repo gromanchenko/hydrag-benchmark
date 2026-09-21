@@ -4,7 +4,7 @@ category: report
 status: active
 created: '2026-03-14'
 updated: '2026-09-21'
-summary: 'hydrag-benchmark version history — all notable changes in Keep a Changelog format, from v0.1.0 through v0.9.0; releases 0.6.3-0.7.x were not recorded'
+summary: 'hydrag-benchmark version history — all notable changes in Keep a Changelog format, from v0.1.0 through v0.9.1; releases 0.6.3-0.7.x were not recorded'
 keywords:
   hydrag-benchmark: 9
   changelog: 8
@@ -22,6 +22,20 @@ All notable changes to `hydrag-benchmark` will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.9.1] - 2026-09-21
+
+### Fixed
+
+- **Shared-backend strategy duplication**: the classic ChromaDB runner now
+  reports the full HydRAG pipeline once. The former `hybrid` and `crag`
+  aliases resolved semantic, keyword, and hybrid retrieval through the same
+  `collection.query()` backend, so they are rejected with an explicit reason
+  instead of being presented as independent retrieval results (T-5052 A17).
+- **Orphan benchmark launcher**: removed the ignore rule for the unsupported
+  `run_beir_save.py` scratch workflow and added a release-hygiene regression
+  guard. Supported BEIR execution remains the typed `hydrag-bench beir`
+  command (T-5052 A18).
 
 ## [0.9.0] - 2026-09-21
 

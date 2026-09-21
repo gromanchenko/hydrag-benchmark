@@ -45,8 +45,8 @@ class TestPython312Floor:
         assert '"3.12"' in ci
         assert '"3.13"' in ci
 
-    def test_version_is_090(self) -> None:
-        assert _pyproject_version() == "0.9.0"
+    def test_version_is_091(self) -> None:
+        assert _pyproject_version() == "0.9.1"
 
     def test_version_py_agrees(self) -> None:
         from hydrag_benchmark import __version__
@@ -54,10 +54,15 @@ class TestPython312Floor:
 
     def test_changelog_states_310_311_dropped(self) -> None:
         changelog = (REPO_ROOT / "CHANGELOG.md").read_text()
-        assert "[0.9.0]" in changelog
+        assert "[0.9.1]" in changelog
         assert "3.10" in changelog and "3.11" in changelog
         lowered = changelog.lower()
         assert "no longer supported" in lowered or "dropped" in lowered
+
+    def test_retired_run_beir_save_script_cannot_reappear_as_ignored_state(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        assert not (root / "run_beir_save.py").exists()
+        assert "run_beir_save.py" not in (root / ".gitignore").read_text()
 
 
 class TestStaticGatesExitZero:

@@ -62,7 +62,7 @@ hydrag-bench --help
 hydrag-bench --version
 
 # 1) Classic single-strategy benchmark
-hydrag-bench run <suite.yaml> --strategy <similarity|hybrid|crag|hydrag> --corpus-dir <path> [options]
+hydrag-bench run <suite.yaml> --strategy <similarity|hydrag> --corpus-dir <path> [options]
 
 # 2) List suites
 hydrag-bench list-suites --suite-dir <path>
@@ -82,7 +82,7 @@ hydrag-bench beir --dataset <name> [options]
 | Flag | Required | Default | Description |
 |------|----------|---------|-------------|
 | `suite` | yes | - | Path to benchmark suite YAML |
-| `--strategy` | yes | - | One of `similarity`, `hybrid`, `crag`, `hydrag` |
+| `--strategy` | yes | - | One of `similarity`, `hydrag`; shared-backend `hybrid`/`crag` aliases are rejected rather than reported as independent results |
 | `--corpus-dir` | yes | - | Root directory of files to index |
 | `--output-dir` | no | stdout | Directory to write `<suite>_<strategy>.json` |
 | `--suite-dir` | no | - | Base dir for resolving relative `suite` path |

@@ -24,7 +24,7 @@ def _build_parser() -> argparse.ArgumentParser:
     run_p.add_argument("suite", type=Path, help="Path to benchmark suite YAML file")
     run_p.add_argument(
         "--strategy", required=True,
-        help="Retrieval strategy name (e.g. hydrag, hybrid, crag)",
+        help="Retrieval strategy name (similarity or hydrag)",
     )
     run_p.add_argument("--corpus-dir", type=Path, required=True, help="Root directory of the corpus to index")
     run_p.add_argument(

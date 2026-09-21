@@ -16,5 +16,3 @@ __pycache__/
 .pytest_cache/
 # Local benchmark results
 beir-results/
-# Dev scripts
-run_beir_save.py
