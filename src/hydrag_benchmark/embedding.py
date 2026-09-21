@@ -13,7 +13,7 @@ import logging
 import math
 import struct
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import torch
@@ -44,8 +44,11 @@ class TransformersEmbedder:
 
     def __init__(self, config: EmbeddingConfig | None = None) -> None:
         self._config = config or EmbeddingConfig()
-        self._model = None
-        self._tokenizer = None
+        # transformers is an optional, lazily-imported dependency (see
+        # _load() below); Any, not the inferred None, since these are
+        # reassigned to real model/tokenizer objects once loaded (T-5061).
+        self._model: Any = None
+        self._tokenizer: Any = None
 
     def _load(self) -> None:
         if self._model is not None:

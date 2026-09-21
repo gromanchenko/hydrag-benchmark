@@ -38,7 +38,7 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from .beir_loader import download_beir_dataset, load_beir_corpus, load_beir_qrels, load_beir_queries
 from .heads.base import Chunk, RetrievalHead
@@ -78,7 +78,9 @@ def _peak_vram_mb() -> float:
     try:
         import torch  # noqa: PLC0415  (local import; torch may be absent)
         if torch.cuda.is_available():
-            return round(torch.cuda.max_memory_allocated() / (1024 * 1024), 1)
+            # torch is ignore_missing_imports (T-5061), so its calls return
+            # Any; cast back to the declared float return type.
+            return cast(float, round(torch.cuda.max_memory_allocated() / (1024 * 1024), 1))
     except Exception:  # pragma: no cover
         pass
     return 0.0
@@ -130,7 +132,7 @@ def _get_ec2_instance_type() -> str:
             headers={"X-aws-ec2-metadata-token-ttl-seconds": "10"},
         )
         with urllib.request.urlopen(req, timeout=2) as resp:
-            return resp.read().decode().strip()
+            return cast(str, resp.read().decode().strip())
     except Exception:
         return "unknown"
 
@@ -271,8 +273,11 @@ def _find_snapshot_db(
             logger.warning("Corrupt manifest at %s — skipping", manifest_path)
             continue
 
-        artifact_name = meta.get("artifact_name", "")
-        expected_sha = meta.get("artifact_sha256", "")
+        # meta is json.loads() output (Any); cast the two fields used to
+        # build typed Path/str values below so Any doesn't propagate into
+        # this function's declared Path | None return (T-5061).
+        artifact_name = cast(str, meta.get("artifact_name", ""))
+        expected_sha = cast(str, meta.get("artifact_sha256", ""))
         gz_path = run_dir / artifact_name
         if not gz_path.exists():
             continue
@@ -711,11 +716,14 @@ def run_beir_benchmark(
     _env_gate = int(os.environ.get("HYDRAG_MAX_CORPUS_FOR_ENRICHMENT", "0"))
     _effective_max_enrich: int = max_enrich_corpus or _env_gate or _DEFAULT_MAX_ENRICH_CORPUS
 
-    # Lazy-init shared objects for head_b/c
-    _embedder = None
-    _doc2query = None
+    # Lazy-init shared objects for head_b/c.
+    # Any (T-5061): the concrete type depends on use_gpu and is only known
+    # via lazily (locally) imported classes, so it can't be named as a
+    # module-level union without importing both eagerly.
+    _embedder: Any = None
+    _doc2query: Any = None
 
-    def _get_embedder():
+    def _get_embedder() -> Any:
         nonlocal _embedder
         if _embedder is None:
             if use_gpu:
@@ -727,7 +735,7 @@ def run_beir_benchmark(
                 _embedder = HashEmbedder()
         return _embedder
 
-    def _get_doc2query():
+    def _get_doc2query() -> Any:
         nonlocal _doc2query
         if _doc2query is None:
             from .doc2query import Doc2QueryConfig, Doc2QueryGenerator

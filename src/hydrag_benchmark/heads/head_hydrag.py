@@ -19,12 +19,12 @@ import hashlib
 import json
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional, Protocol
 from urllib import request
 
 from hydrag.config import HydRAGConfig
 from hydrag.core import hydrag_search
-from hydrag.protocols import LLMProvider
+from hydrag.protocols import LLMProvider, VectorStoreAdapter
 from hydrag.sqlite_store import IndexedChunk, SQLiteFTSStore
 
 from .base import Chunk, ScoredChunk
@@ -38,7 +38,7 @@ def _text_hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _ollama_embed_fn(host: str, model: str):
+def _ollama_embed_fn(host: str, model: str) -> Callable[[str], list[float]]:
     """Build a small sync embedding function against the Ollama HTTP API."""
 
     endpoint = f"{host.rstrip('/')}/api/embeddings"
@@ -65,6 +65,18 @@ def _ollama_embed_fn(host: str, model: str):
         raise RuntimeError("Ollama embedding response missing vector")
 
     return _embed
+
+
+class _IndexedVectorStoreAdapter(VectorStoreAdapter, Protocol):
+    """Local extension of hydrag's VectorStoreAdapter (T-5061): adds the
+    index_documents/close lifecycle methods both SQLiteFTSStore and
+    SurrealDBAdapter implement but that hydrag-core's own protocol
+    deliberately omits (it only covers query-time search). Defined here
+    rather than in hydrag-core, which is out of scope for this ticket."""
+
+    def index_documents(self, chunks: list[IndexedChunk]) -> int: ...
+
+    def close(self) -> None: ...
 
 
 class HeadHydrag:
@@ -105,6 +117,10 @@ class HeadHydrag:
         llm: Optional[LLMProvider] = None,
     ) -> None:
         self._backend = db_backend.strip().lower()
+        # Explicit protocol annotation: both branches below satisfy
+        # VectorStoreAdapter structurally, but are different concrete
+        # classes (T-5061, same pattern as beir_runner.py's head dispatch).
+        self._store: _IndexedVectorStoreAdapter
         if self._backend == "sqlite":
             self._store = SQLiteFTSStore(db_path)
         elif self._backend == "surrealdb":

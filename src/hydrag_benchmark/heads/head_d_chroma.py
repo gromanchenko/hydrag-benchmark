@@ -15,6 +15,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import time
+from typing import Any, cast
 
 from .base import Chunk, ScoredChunk
 from .head_ids import HEAD_ID_ALIASES
@@ -67,8 +68,12 @@ class HeadDChroma:
         self._ollama_timeout_s = ollama_timeout_s
         self._collection_name = collection_name or f"beir_{hashlib.sha1(embedding_model.encode()).hexdigest()[:8]}"
         self._chunks: dict[str, Chunk] = {}
-        self._client: object | None = None
-        self._collection: object | None = None
+        # chromadb is an optional, lazily-imported dependency (see __init__
+        # and build_index above), so these can't be typed against chromadb's
+        # own Client/Collection classes without importing it at module
+        # level. Any is correct here, not object (T-5061).
+        self._client: Any | None = None
+        self._collection: Any | None = None
 
     @property
     def name(self) -> str:
@@ -142,15 +147,21 @@ class HeadDChroma:
         self._chunks = {c.chunk_id: c for c in chunks}
 
         # In-memory client: avoids disk I/O, safe for BEIR corpus sizes up to ~200 k chunks.
-        self._client = chromadb.Client()
+        # cast(Any, ...): self._client/_collection are declared Any so this
+        # class never needs chromadb imported at module level, but mypy
+        # still narrows a freshly-assigned self-attribute to the concrete
+        # inferred type within the same method unless re-cast explicitly
+        # (T-5061) -- without it, later calls resolve against chromadb's
+        # real (and here, mismatched) Collection stub instead of Any.
+        self._client = cast(Any, chromadb.Client())
         try:
-            self._client.delete_collection(self._collection_name)  # type: ignore[union-attr]
+            self._client.delete_collection(self._collection_name)
         except Exception:
             pass
-        self._collection = self._client.create_collection(  # type: ignore[union-attr]
+        self._collection = cast(Any, self._client.create_collection(
             name=self._collection_name,
             metadata={"hnsw:space": "cosine"},
-        )
+        ))
 
         total = len(chunks)
         logger.info("HeadDChroma: embedding %d chunks via %s", total, self._embedding_model)
@@ -170,7 +181,7 @@ class HeadDChroma:
                     eb_slice = documents[eb_start : eb_start + _EMBED_BATCH_SIZE]
                     all_vecs.extend(self._embed_batch(eb_slice))
                 embeddings_buf.extend(all_vecs)
-                self._collection.add(  # type: ignore[union-attr]
+                self._collection.add(
                     ids=ids,
                     documents=documents,
                     embeddings=all_vecs,
@@ -194,7 +205,7 @@ class HeadDChroma:
             raise RuntimeError("HeadDChroma: build_index() must be called before retrieve()")
 
         query_vec = self._embed_single(query)
-        raw = self._collection.query(  # type: ignore[union-attr]
+        raw = self._collection.query(
             query_embeddings=[query_vec],
             n_results=min(n_results, len(self._chunks)),
             include=["distances"],
@@ -225,7 +236,7 @@ class HeadDChroma:
     def close(self) -> None:
         try:
             if self._client is not None and self._collection is not None:
-                self._client.delete_collection(self._collection_name)  # type: ignore[union-attr]
+                self._client.delete_collection(self._collection_name)
         except Exception:
             pass
         self._client = None

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+from typing import Any
 
 from . import __version__
 
@@ -576,7 +577,7 @@ def _cmd_surreal_microbench(args: argparse.Namespace) -> int:
             content_hash=hashlib.sha256(text.encode()).hexdigest()[:32],
         ))
 
-    results: list[dict] = []
+    results: list[dict[str, Any]] = []
     _dummy_embed: list[float] = [0.0]
 
     for bs in batch_sizes:

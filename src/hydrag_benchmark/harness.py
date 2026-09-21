@@ -15,6 +15,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import cast
 
 from . import __version__
 from .heads.base import Chunk, ScoredChunk
@@ -168,10 +169,14 @@ def run_multihead_benchmark(
         n = len(cfg_result.cases)
         cfg_result.summary = {
             "total_cases": n,
-            "recall_at_1": round(sum(c["recall_at_1"] for c in cfg_result.cases) / n, 3) if n else 0.0,
-            "recall_at_k": round(sum(c["recall_at_k"] for c in cfg_result.cases) / n, 3) if n else 0.0,
-            "mrr": round(sum(c["mrr"] for c in cfg_result.cases) / n, 3) if n else 0.0,
-            "chunk_overlap": round(sum(c["chunk_overlap"] for c in cfg_result.cases) / n, 3) if n else 0.0,
+            # cases: list[dict[str, object]] -- values are genuinely
+            # heterogeneous (str/float/None), so these specific numeric
+            # keys need an explicit cast; the dict literal above is the
+            # actual guarantee that they hold floats (T-5061).
+            "recall_at_1": round(sum(cast(float, c["recall_at_1"]) for c in cfg_result.cases) / n, 3) if n else 0.0,
+            "recall_at_k": round(sum(cast(float, c["recall_at_k"]) for c in cfg_result.cases) / n, 3) if n else 0.0,
+            "mrr": round(sum(cast(float, c["mrr"]) for c in cfg_result.cases) / n, 3) if n else 0.0,
+            "chunk_overlap": round(sum(cast(float, c["chunk_overlap"]) for c in cfg_result.cases) / n, 3) if n else 0.0,
             "latency_ms": latency_stats(case_latencies),
         }
         matrix.configs.append(cfg_result)

@@ -14,7 +14,7 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from . import __version__
 from .heads.base import Chunk
@@ -93,7 +93,11 @@ def _build_kb(
         client.delete_collection(collection_name)
     except Exception:
         pass
-    collection = client.create_collection(name=collection_name)
+    # cast(Any, ...): _build_kb returns Any and chromadb is only ever
+    # imported locally, but a freshly-created local variable still narrows
+    # to chromadb's real (and here, mismatched-for-metadatas) Collection
+    # stub unless cast explicitly (T-5061; same pattern as head_d_chroma.py).
+    collection = cast(Any, client.create_collection(name=collection_name))
 
     files = [
         fp
@@ -104,7 +108,11 @@ def _build_kb(
 
     doc_ids: list[str] = []
     documents: list[str] = []
-    metadatas: list[dict[str, str]] = []
+    # dict[str, Any], not dict[str, str]: chromadb's Collection.add() expects
+    # list[Mapping[str, str | int | float | bool | ...]] -- list is invariant,
+    # so a narrower list[dict[str, str]] doesn't satisfy it structurally even
+    # though every value here is in fact a str (T-5061).
+    metadatas: list[dict[str, Any]] = []
 
     for fp in files:
         try:
@@ -180,7 +188,9 @@ class _ChromaDBAdapter:
 
     def _query(self, query: str, n_results: int) -> list[str]:
         results = self._collection.query(query_texts=[query], n_results=n_results)
-        return results.get("documents", [[]])[0]
+        # collection is Any (T-5061); cast the extracted list back to the
+        # declared return type instead of returning Any.
+        return cast(list[str], results.get("documents", [[]])[0])
 
     def semantic_search(self, query: str, n_results: int = 5) -> list[str]:
         return self._query(query, n_results)
@@ -213,7 +223,7 @@ def _search_fn(strategy: str, collection: Any, n_results: int) -> Any:
     if strategy == "similarity":
         def _baseline(query: str) -> list[str]:
             results = collection.query(query_texts=[query], n_results=n_results)
-            return results.get("documents", [[]])[0]
+            return cast(list[str], results.get("documents", [[]])[0])
         return _baseline
 
     from hydrag.config import HydRAGConfig
@@ -402,6 +412,10 @@ def run_multihead(
         raise RuntimeError(f"No indexable files found in {corpus_dir}")
 
     # Build embedder
+    # Explicit annotation: the two branches are different concrete classes,
+    # not a subtype relationship, so mypy needs the union stated up front
+    # rather than inferring it from the first branch alone (T-5061).
+    embedder: TransformersEmbedder | HashEmbedder
     if use_gpu:
         embedder = TransformersEmbedder(EmbeddingConfig(
             model_name=embedding_model,
