@@ -3,4 +3,4 @@
 This package ships a ``py.typed`` marker for PEP 561 compliance.
 """
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"

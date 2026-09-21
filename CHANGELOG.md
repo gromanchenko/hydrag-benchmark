@@ -4,7 +4,7 @@ category: report
 status: active
 created: '2026-03-14'
 updated: '2026-09-21'
-summary: 'hydrag-benchmark version history — all notable changes in Keep a Changelog format, from v0.1.0 through v0.8.0; releases 0.6.3-0.7.x were not recorded'
+summary: 'hydrag-benchmark version history — all notable changes in Keep a Changelog format, from v0.1.0 through v0.9.0; releases 0.6.3-0.7.x were not recorded'
 keywords:
   hydrag-benchmark: 9
   changelog: 8
@@ -22,6 +22,18 @@ All notable changes to `hydrag-benchmark` will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.9.0] - 2026-09-21
+
+### Changed
+
+- **Python 3.10 and 3.11 are no longer supported.** `requires-python` raised
+  from `>=3.10` to `>=3.12`; the `3.10`/`3.11` trove classifiers were
+  removed; `[tool.mypy] python_version` and the CI test matrix both now
+  target only `3.12` and `3.13`. Minor-version bump, not a patch, because
+  it removes previously-supported runtime versions (T-5061, operator
+  decision 2026-09-21: "consistent switch to 3.12 everywhere within
+  hydrags").
 
 ## [0.8.0] - 2026-09-21
 
