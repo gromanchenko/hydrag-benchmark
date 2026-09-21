@@ -13,6 +13,10 @@ import logging
 import math
 import struct
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import torch
 
 logger = logging.getLogger("hydrag_benchmark.embedding")
 

@@ -6,8 +6,9 @@ switch to 3.12 everywhere within hydrags").
 
 from __future__ import annotations
 
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 

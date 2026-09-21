@@ -10,7 +10,6 @@ import pytest
 from hydrag_benchmark.cli import main
 from hydrag_benchmark.runner import SUPPORTED_STRATEGIES, _ChromaDBAdapter
 
-
 SUITE_YAML = """\
 name: strategy-test-suite
 version: "1.0"

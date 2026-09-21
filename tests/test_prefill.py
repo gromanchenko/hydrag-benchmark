@@ -2,14 +2,13 @@
 from __future__ import annotations
 
 import json
-import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
-from hydrag_benchmark.runner import prefill_doc2query
 from hydrag_benchmark.cli import main as cli_main
+from hydrag_benchmark.runner import prefill_doc2query
 
 _D2Q_PATCH = "hydrag_benchmark.doc2query.Doc2QueryGenerator"
 

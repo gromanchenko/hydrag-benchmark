@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from . import __version__
+from .heads.base import Chunk
 from .metrics import chunk_overlap, latency_stats, mrr, recall_at_1, recall_at_k
 from .suite import BenchSuite
 
@@ -333,10 +334,8 @@ def run_benchmark(
 # ── Multi-head runner ────────────────────────────────────────────────────────
 
 
-def _chunk_corpus(corpus_dir: Path) -> list["Chunk"]:
+def _chunk_corpus(corpus_dir: Path) -> list[Chunk]:
     """Parse a corpus directory into content-addressed Chunks for multi-head."""
-    from .heads.base import Chunk
-
     files = [
         fp
         for fp in corpus_dir.rglob("*")

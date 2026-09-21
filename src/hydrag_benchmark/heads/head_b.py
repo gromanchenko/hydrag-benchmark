@@ -15,15 +15,14 @@ from __future__ import annotations
 
 import json
 import logging
-import math
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ..augmentation_cache import AugmentationCache
+from ..doc2query import Doc2QueryGenerator
+from ..quality_filter import cosine_similarity, lexical_filter, semantic_filter
 from .base import Chunk, Embedder, ScoredChunk
 from .head_ids import HEAD_ID_ALIASES
-from ..augmentation_cache import AugmentationCache
-from ..doc2query import Doc2QueryConfig, Doc2QueryGenerator
-from ..quality_filter import cosine_similarity, lexical_filter, semantic_filter
 
 logger = logging.getLogger("hydrag_benchmark.heads.head_b")
 

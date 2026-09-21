@@ -103,7 +103,6 @@ def download_beir_dataset(
     # Extract — BEIR datasets come as zip files
     logger.info("Extracting %s", archive_path)
     import zipfile
-    import sys
 
     with zipfile.ZipFile(archive_path) as zf:
         for member in zf.namelist():

@@ -3,18 +3,22 @@
 from __future__ import annotations
 
 import json
-import math
 from pathlib import Path
-from typing import Any
 from unittest.mock import patch
 
 import pytest
 
 from hydrag_benchmark.beir_loader import load_beir_corpus, load_beir_qrels, load_beir_queries
-from hydrag_benchmark.beir_runner import _normalize_heads_with_warnings, map_at_k, mrr_at_k, ndcg_at_k, recall_at_k, run_beir_benchmark
+from hydrag_benchmark.beir_runner import (
+    _normalize_heads_with_warnings,
+    map_at_k,
+    mrr_at_k,
+    ndcg_at_k,
+    recall_at_k,
+    run_beir_benchmark,
+)
 from hydrag_benchmark.heads.base import Chunk, ScoredChunk
 from hydrag_benchmark.heads.head_d import HeadD
-
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -23,7 +27,11 @@ from hydrag_benchmark.heads.head_d import HeadD
 def sample_chunks() -> list[Chunk]:
     return [
         Chunk(chunk_id="doc-1", text="Machine learning algorithms transform data into predictions.", source="beir:1"),
-        Chunk(chunk_id="doc-2", text="Deep neural networks have revolutionized computer vision tasks.", source="beir:2"),
+        Chunk(
+            chunk_id="doc-2",
+            text="Deep neural networks have revolutionized computer vision tasks.",
+            source="beir:2",
+        ),
         Chunk(chunk_id="doc-3", text="Natural language processing enables text understanding.", source="beir:3"),
         Chunk(chunk_id="doc-4", text="Reinforcement learning agents learn through trial and error.", source="beir:4"),
         Chunk(chunk_id="doc-5", text="Support vector machines are effective for classification.", source="beir:5"),

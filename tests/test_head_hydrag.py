@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from hydrag_benchmark.heads.base import Chunk, ScoredChunk
 from hydrag_benchmark.heads.head_hydrag import HeadHydrag, _text_hash
-
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -18,7 +16,11 @@ from hydrag_benchmark.heads.head_hydrag import HeadHydrag, _text_hash
 def sample_chunks() -> list[Chunk]:
     return [
         Chunk(chunk_id="doc-1", text="Machine learning algorithms transform data into predictions.", source="beir:1"),
-        Chunk(chunk_id="doc-2", text="Deep neural networks have revolutionized computer vision tasks.", source="beir:2"),
+        Chunk(
+            chunk_id="doc-2",
+            text="Deep neural networks have revolutionized computer vision tasks.",
+            source="beir:2",
+        ),
         Chunk(chunk_id="doc-3", text="Natural language processing enables text understanding.", source="beir:3"),
         Chunk(chunk_id="doc-4", text="Reinforcement learning agents learn through trial and error.", source="beir:4"),
         Chunk(chunk_id="doc-5", text="Support vector machines are effective for classification.", source="beir:5"),
@@ -131,9 +133,18 @@ class TestHeadHydragRetrieval:
         from hydrag.fusion import RetrievalResult
 
         mock_results = [
-            RetrievalResult(text=sample_chunks[3].text, source="", score=0.95, head_origin="hydrag", trust_level="local"),
-            RetrievalResult(text=sample_chunks[1].text, source="", score=0.80, head_origin="hydrag", trust_level="local"),
-            RetrievalResult(text=sample_chunks[4].text, source="", score=0.60, head_origin="hydrag", trust_level="local"),
+            RetrievalResult(
+                text=sample_chunks[3].text, source="", score=0.95,
+                head_origin="hydrag", trust_level="local",
+            ),
+            RetrievalResult(
+                text=sample_chunks[1].text, source="", score=0.80,
+                head_origin="hydrag", trust_level="local",
+            ),
+            RetrievalResult(
+                text=sample_chunks[4].text, source="", score=0.60,
+                head_origin="hydrag", trust_level="local",
+            ),
         ]
 
         with HeadHydrag() as head:
@@ -150,8 +161,14 @@ class TestHeadHydragRetrieval:
         from hydrag.fusion import RetrievalResult
 
         mock_results = [
-            RetrievalResult(text=sample_chunks[0].text, source="", score=0.9, head_origin="hydrag", trust_level="local"),
-            RetrievalResult(text=sample_chunks[0].text, source="", score=0.5, head_origin="hydrag", trust_level="local"),
+            RetrievalResult(
+                text=sample_chunks[0].text, source="", score=0.9,
+                head_origin="hydrag", trust_level="local",
+            ),
+            RetrievalResult(
+                text=sample_chunks[0].text, source="", score=0.5,
+                head_origin="hydrag", trust_level="local",
+            ),
         ]
 
         with HeadHydrag() as head:
@@ -281,7 +298,10 @@ class TestHeadHydragProtocol:
         from hydrag.fusion import RetrievalResult
 
         mock_results = [
-            RetrievalResult(text=sample_chunks[0].text, source="", score=0.9, head_origin="hydrag", trust_level="local"),
+            RetrievalResult(
+                text=sample_chunks[0].text, source="", score=0.9,
+                head_origin="hydrag", trust_level="local",
+            ),
         ]
 
         with HeadHydrag() as head:

@@ -19,8 +19,8 @@ import hashlib
 import json
 import logging
 from pathlib import Path
-from urllib import request
 from typing import Optional
+from urllib import request
 
 from hydrag import HydRAGConfig, IndexedChunk, SQLiteFTSStore, hydrag_search
 from hydrag.protocols import LLMProvider

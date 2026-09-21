@@ -40,6 +40,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .beir_loader import download_beir_dataset, load_beir_corpus, load_beir_qrels, load_beir_queries
+from .heads.base import Chunk, RetrievalHead
+from .heads.head_a import HeadA
+from .heads.head_b import HeadB
+from .heads.head_c import HeadC
+from .heads.head_d import HeadD
+from .heads.head_d_chroma import HeadDChroma
+from .heads.head_e import HeadE
+from .heads.head_hydrag import HeadHydrag
+from .heads.head_ids import canonicalize_head_ids, normalize_head_id
+from .sys_sampler import PhaseSampler
+
 # T-975: default max corpus size for fts5_enriched Ollama enrichment.
 # Ollama keyword enrichment throughput ~3 docs/min — above this threshold
 # building the enriched index would take years on large corpora.  Configurable
@@ -296,18 +308,6 @@ def _find_snapshot_db(
 
     return None
 
-
-from .beir_loader import download_beir_dataset, load_beir_corpus, load_beir_qrels, load_beir_queries
-from .heads.base import Chunk, RetrievalHead, ScoredChunk
-from .sys_sampler import PhaseSampler
-from .heads.head_a import HeadA
-from .heads.head_b import HeadB
-from .heads.head_c import HeadC
-from .heads.head_d import HeadD
-from .heads.head_d_chroma import HeadDChroma
-from .heads.head_e import HeadE
-from .heads.head_hydrag import HeadHydrag
-from .heads.head_ids import canonicalize_head_ids, normalize_head_id
 
 logger = logging.getLogger("hydrag_benchmark.beir_runner")
 
@@ -972,8 +972,8 @@ def _print_comparison(result: BeirBenchmarkResult) -> None:
         )
     # Reference baselines (from docker/bench-ubuntu SciFact run)
     if result.dataset == "scifact":
-        print(f"\nReference baselines (ChromaDB, SciFact):")
-        print(f"  similarity: nDCG@10 = 0.4796")
-        print(f"  hybrid:     nDCG@10 = 0.5788")
-        print(f"  hydrag:     nDCG@10 = 0.5875")
+        print("\nReference baselines (ChromaDB, SciFact):")
+        print("  similarity: nDCG@10 = 0.4796")
+        print("  hybrid:     nDCG@10 = 0.5788")
+        print("  hydrag:     nDCG@10 = 0.5875")
     print(f"{'=' * 70}\n")

@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import pytest
-
 from hydrag_benchmark.doc2query import (
     Doc2QueryConfig,
     Doc2QueryGenerator,
     compute_adaptive_n,
     smart_truncate,
 )
-
 
 # ── compute_adaptive_n ───────────────────────────────────────────────────────
 

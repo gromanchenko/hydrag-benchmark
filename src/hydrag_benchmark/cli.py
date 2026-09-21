@@ -21,9 +21,15 @@ def _build_parser() -> argparse.ArgumentParser:
     # ── run ───────────────────────────────────────────────────────
     run_p = sub.add_parser("run", help="Execute a benchmark suite")
     run_p.add_argument("suite", type=Path, help="Path to benchmark suite YAML file")
-    run_p.add_argument("--strategy", required=True, help="Retrieval strategy name (e.g. hydrag, hybrid, crag)")
+    run_p.add_argument(
+        "--strategy", required=True,
+        help="Retrieval strategy name (e.g. hydrag, hybrid, crag)",
+    )
     run_p.add_argument("--corpus-dir", type=Path, required=True, help="Root directory of the corpus to index")
-    run_p.add_argument("--output-dir", type=Path, default=None, help="Directory to write JSON results (default: stdout)")
+    run_p.add_argument(
+        "--output-dir", type=Path, default=None,
+        help="Directory to write JSON results (default: stdout)",
+    )
     run_p.add_argument("--suite-dir", type=Path, default=None, help="Base directory for resolving relative suite paths")
     run_p.add_argument("--n-results", type=int, default=5, help="Top-k results to retrieve per query (default: 5)")
     run_p.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility (default: 42)")
@@ -88,19 +94,40 @@ def _build_parser() -> argparse.ArgumentParser:
     mh_p = sub.add_parser("multihead", help="Run multi-head retrieval benchmark (Heads A/B/C)")
     mh_p.add_argument("suite", type=Path, help="Path to benchmark suite YAML file")
     mh_p.add_argument("--corpus-dir", type=Path, required=True, help="Root directory of the corpus to index")
-    mh_p.add_argument("--output-dir", type=Path, default=None, help="Directory to write JSON results and question sidecar")
+    mh_p.add_argument(
+        "--output-dir", type=Path, default=None,
+        help="Directory to write JSON results and question sidecar",
+    )
     mh_p.add_argument("--suite-dir", type=Path, default=None, help="Base directory for resolving relative suite paths")
     mh_p.add_argument("--n-results", type=int, default=5, help="Top-k results per query (default: 5)")
     mh_p.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
-    mh_p.add_argument("--use-gpu", action="store_true", help="Use GPU-accelerated transformers embedder (requires [gpu] extra)")
+    mh_p.add_argument(
+        "--use-gpu", action="store_true",
+        help="Use GPU-accelerated transformers embedder (requires [gpu] extra)",
+    )
     mh_p.add_argument("--doc2query-model", default="qwen3:4b", help="Doc2Query LLM model (default: qwen3:4b)")
-    mh_p.add_argument("--doc2query-api-url", default="http://localhost:11434", help="Doc2Query LLM API URL (default: ollama localhost)")
-    mh_p.add_argument("--doc2query-timeout-s", type=float, default=30.0, help="Doc2Query request timeout in seconds (default: 30)")
-    mh_p.add_argument("--doc2query-max-retries", type=int, default=2, help="Doc2Query retry count after first failure (default: 2)")
+    mh_p.add_argument(
+        "--doc2query-api-url", default="http://localhost:11434",
+        help="Doc2Query LLM API URL (default: ollama localhost)",
+    )
+    mh_p.add_argument(
+        "--doc2query-timeout-s", type=float, default=30.0,
+        help="Doc2Query request timeout in seconds (default: 30)",
+    )
+    mh_p.add_argument(
+        "--doc2query-max-retries", type=int, default=2,
+        help="Doc2Query retry count after first failure (default: 2)",
+    )
     mh_p.add_argument("--doc2query-n-questions", type=int, default=3, help="Synthetic questions per chunk (default: 3)")
     mh_p.add_argument("--custom-prompt", default="", help="Custom context prepended to the Doc2Query prompt template")
-    mh_p.add_argument("--adaptive-n", action="store_true", default=False, help="Adapt question count to chunk token length (RFC §2.3)")
-    mh_p.add_argument("--max-questions-per-chunk", type=int, default=12, help="Cap on questions per chunk when adaptive_n is enabled (default: 12)")
+    mh_p.add_argument(
+        "--adaptive-n", action="store_true", default=False,
+        help="Adapt question count to chunk token length (RFC §2.3)",
+    )
+    mh_p.add_argument(
+        "--max-questions-per-chunk", type=int, default=12,
+        help="Cap on questions per chunk when adaptive_n is enabled (default: 12)",
+    )
     mh_p.add_argument(
         "--embedding-model",
         default="Alibaba-NLP/gte-Qwen2-7B-instruct",
@@ -141,7 +168,10 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Dense embedding model for Head B/C (default: gte-Qwen2-7B-instruct)",
     )
     beir_p.add_argument("--use-gpu", action="store_true", help="Use GPU-accelerated TransformersEmbedder for Head B/C")
-    beir_p.add_argument("--doc2query-model", default="qwen3:4b", help="Doc2Query LLM model for Head B (default: qwen3:4b)")
+    beir_p.add_argument(
+        "--doc2query-model", default="qwen3:4b",
+        help="Doc2Query LLM model for Head B (default: qwen3:4b)",
+    )
     beir_p.add_argument("--doc2query-api-url", default="http://localhost:11434", help="Doc2Query LLM API URL")
     # T-964: multi-backend comparison params
     beir_p.add_argument(
@@ -515,6 +545,7 @@ def _cmd_surreal_microbench(args: argparse.Namespace) -> int:
 
     from hydrag import IndexedChunk
     from hydrag.surreal_adapter import SurrealDBAdapter
+
     from .sys_sampler import PhaseSampler, available_backends
 
     doc_count: int = args.doc_count

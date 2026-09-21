@@ -11,10 +11,9 @@ from hydrag_benchmark.embedding import HashEmbedder
 from hydrag_benchmark.harness import CONFIGS, _merge_results, run_multihead_benchmark
 from hydrag_benchmark.heads.base import Chunk, ScoredChunk
 from hydrag_benchmark.heads.head_a import HeadA
-from hydrag_benchmark.heads.head_b import HeadB, HeadBIndex, VectorEntry
+from hydrag_benchmark.heads.head_b import HeadB
 from hydrag_benchmark.heads.head_c import HeadC
 from hydrag_benchmark.suite import BenchSuite
-
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -58,15 +57,34 @@ def test_chunks() -> list[Chunk]:
     return [
         Chunk(
             chunk_id="ch-1", source="math.py",
-            text="def fibonacci(n):\n    \"\"\"Recursive fibonacci.\"\"\"\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
+            text=(
+                "def fibonacci(n):\n"
+                "    \"\"\"Recursive fibonacci.\"\"\"\n"
+                "    if n <= 1:\n"
+                "        return n\n"
+                "    return fibonacci(n-1) + fibonacci(n-2)"
+            ),
         ),
         Chunk(
             chunk_id="ch-2", source="io.py",
-            text="import csv\n\ndef read_csv(path):\n    with open(path) as f:\n        reader = csv.reader(f)\n        return list(reader)",
+            text=(
+                "import csv\n"
+                "\n"
+                "def read_csv(path):\n"
+                "    with open(path) as f:\n"
+                "        reader = csv.reader(f)\n"
+                "        return list(reader)"
+            ),
         ),
         Chunk(
             chunk_id="ch-3", source="main.py",
-            text="from math import fibonacci\nfrom io import read_csv\n\nresult = fibonacci(10)\ndata = read_csv('input.csv')",
+            text=(
+                "from math import fibonacci\n"
+                "from io import read_csv\n"
+                "\n"
+                "result = fibonacci(10)\n"
+                "data = read_csv('input.csv')"
+            ),
         ),
     ]
 

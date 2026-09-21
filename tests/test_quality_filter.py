@@ -10,7 +10,6 @@ from hydrag_benchmark.quality_filter import (
     semantic_filter,
 )
 
-
 # ── Cosine similarity ────────────────────────────────────────────────────────
 
 

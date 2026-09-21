@@ -9,11 +9,11 @@ Per RFC §5:
 
 from __future__ import annotations
 
-from .base import Chunk, ScoredChunk
-from .head_ids import HEAD_ID_ALIASES
+from ..quality_filter import cosine_similarity
+from .base import ScoredChunk
 from .head_a import HeadA
 from .head_b import HeadB
-from ..quality_filter import cosine_similarity
+from .head_ids import HEAD_ID_ALIASES
 
 
 class HeadC:

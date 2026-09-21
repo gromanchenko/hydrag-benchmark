@@ -7,12 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from hydrag_benchmark.augmentation_cache import AugmentationCache, CacheEntry
+from hydrag_benchmark.augmentation_cache import AugmentationCache
 from hydrag_benchmark.doc2query import Doc2QueryGenerator
 from hydrag_benchmark.embedding import HashEmbedder
 from hydrag_benchmark.heads.base import Chunk
 from hydrag_benchmark.heads.head_b import HeadB, HeadBIndex, VectorEntry
-
 
 # ── HashEmbedder ─────────────────────────────────────────────────────────────
 
@@ -102,7 +101,11 @@ class TestAugmentationCache:
 
 class TestDoc2QueryParsing:
     def test_parse_numbered_questions(self) -> None:
-        text = "1. How does fibonacci work?\n2. Why does the function fail when n is negative?\n3. What is the time complexity?"
+        text = (
+            "1. How does fibonacci work?\n"
+            "2. Why does the function fail when n is negative?\n"
+            "3. What is the time complexity?"
+        )
         questions = Doc2QueryGenerator._parse_questions(text)
         assert len(questions) == 3
         assert "How does fibonacci work?" in questions
@@ -131,10 +134,10 @@ class _FakeDoc2Query:
 
     def generate(self, chunk_text: str) -> list[str]:
         return [
-            f"How does this chunk handle the processing of data in the system?",
-            f"Why does this implementation fail when the input is empty or null?",
-            f"What is the algorithmic complexity of the main operation described here?",
-            f"short",  # Should be filtered by lexical filter
+            "How does this chunk handle the processing of data in the system?",
+            "Why does this implementation fail when the input is empty or null?",
+            "What is the algorithmic complexity of the main operation described here?",
+            "short",  # Should be filtered by lexical filter
             chunk_text[:50],  # Exact substring — should be filtered
         ]
 
@@ -144,11 +147,25 @@ def head_b_chunks() -> list[Chunk]:
     return [
         Chunk(
             chunk_id="ch-b1", source="algo.py",
-            text="def quicksort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[0]\n    left = [x for x in arr[1:] if x <= pivot]\n    right = [x for x in arr[1:] if x > pivot]\n    return quicksort(left) + [pivot] + quicksort(right)",
+            text=(
+                "def quicksort(arr):\n"
+                "    if len(arr) <= 1:\n"
+                "        return arr\n"
+                "    pivot = arr[0]\n"
+                "    left = [x for x in arr[1:] if x <= pivot]\n"
+                "    right = [x for x in arr[1:] if x > pivot]\n"
+                "    return quicksort(left) + [pivot] + quicksort(right)"
+            ),
         ),
         Chunk(
             chunk_id="ch-b2", source="io.py",
-            text="def read_csv(path):\n    import csv\n    with open(path) as f:\n        reader = csv.reader(f)\n        return list(reader)",
+            text=(
+                "def read_csv(path):\n"
+                "    import csv\n"
+                "    with open(path) as f:\n"
+                "        reader = csv.reader(f)\n"
+                "        return list(reader)"
+            ),
         ),
     ]
 

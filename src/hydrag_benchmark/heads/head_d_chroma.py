@@ -14,9 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import tempfile
 import time
-from pathlib import Path
 
 from .base import Chunk, ScoredChunk
 from .head_ids import HEAD_ID_ALIASES

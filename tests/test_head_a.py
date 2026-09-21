@@ -13,7 +13,6 @@ from hydrag_benchmark.heads.head_a import (
     extract_symbols,
 )
 
-
 # ── Symbol extraction ────────────────────────────────────────────────────────
 
 
@@ -149,11 +148,22 @@ def sample_chunks() -> list[Chunk]:
         ),
         Chunk(
             chunk_id="ch-003", source="main.py",
-            text="from utils import fibonacci\nfrom parser import parse_yaml\n\nresult = fibonacci(10)\nconfig = parse_yaml('config.yaml')",
+            text=(
+                "from utils import fibonacci\n"
+                "from parser import parse_yaml\n"
+                "\n"
+                "result = fibonacci(10)\n"
+                "config = parse_yaml('config.yaml')"
+            ),
         ),
         Chunk(
             chunk_id="ch-004", source="README.md",
-            text="# Utils\n\nSee also `fibonacci` for number sequences.\nSee [parser docs](parser.md) for YAML parsing.",
+            text=(
+                "# Utils\n"
+                "\n"
+                "See also `fibonacci` for number sequences.\n"
+                "See [parser docs](parser.md) for YAML parsing."
+            ),
         ),
     ]
 

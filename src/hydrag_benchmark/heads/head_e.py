@@ -20,7 +20,7 @@ from pathlib import Path
 from hydrag import IndexedChunk
 from hydrag.enrichment import OllamaKeywordExtractor
 
-from .base import Chunk
+from .base import Chunk, ScoredChunk
 from .head_d import HeadD
 from .head_ids import HEAD_ID_ALIASES
 
@@ -77,10 +77,8 @@ class HeadE(HeadD):
         )
         logger.info("Head E indexed %d chunks (FTS5 + enrichment)", count)
 
-    def retrieve(self, query: str, n_results: int = 10) -> list["ScoredChunk"]:
+    def retrieve(self, query: str, n_results: int = 10) -> list[ScoredChunk]:
         """FTS5 BM25 retrieval (with enriched columns)."""
-        from .base import ScoredChunk
-
         chunk_ids = self._fts_search_chunk_ids(query, n_results)
         results: list[ScoredChunk] = []
         for rank, chunk_id in enumerate(chunk_ids):

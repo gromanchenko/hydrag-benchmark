@@ -4,7 +4,6 @@ from pathlib import Path
 
 from hydrag_benchmark.suite import BenchSuite
 
-
 SUITE_YAML = """\
 name: test-suite
 version: "1.0"
