@@ -6,9 +6,8 @@ switch to 3.12 everywhere within hydrags").
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -34,6 +33,10 @@ class TestPython312Floor:
     def test_mypy_python_version_is_312(self) -> None:
         data = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())
         assert data["tool"]["mypy"]["python_version"] == "3.12"
+
+    def test_ruff_python_version_is_312(self) -> None:
+        data = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())
+        assert data["tool"]["ruff"]["target-version"] == "py312"
 
     def test_ci_matrix_is_312_and_313_only(self) -> None:
         ci = (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text()
