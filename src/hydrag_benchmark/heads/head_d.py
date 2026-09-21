@@ -14,7 +14,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from hydrag import IndexedChunk, SQLiteFTSStore
+from hydrag.sqlite_store import IndexedChunk, SQLiteFTSStore
 
 from .base import Chunk, ScoredChunk
 from .head_ids import HEAD_ID_ALIASES

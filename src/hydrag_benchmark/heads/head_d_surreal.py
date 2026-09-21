@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 import uuid
 
-from hydrag import IndexedChunk
+from hydrag.sqlite_store import IndexedChunk
 from hydrag.surreal_adapter import SurrealDBAdapter
 
 from .base import Chunk, ScoredChunk

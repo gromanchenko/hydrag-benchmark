@@ -53,10 +53,10 @@ from typing import Any
 # ── optional deps — graceful degradation ──────────────────────────────────────
 
 try:
-    import psutil as _psutil  # type: ignore[import-untyped]
+    import psutil as _psutil
     _HAS_PSUTIL = True
 except ImportError:
-    _psutil = None  # type: ignore[assignment]
+    _psutil = None
     _HAS_PSUTIL = False
 
 try:
@@ -65,18 +65,18 @@ try:
     import warnings as _warnings
     with _warnings.catch_warnings():
         _warnings.filterwarnings("ignore", category=FutureWarning)
-        import pynvml as _nvml  # type: ignore[import-untyped]
+        import pynvml as _nvml
     _nvml.nvmlInit()
     _NVML_LIBRARY_OK = True
     _NVML_DEVICE_COUNT = _nvml.nvmlDeviceGetCount()
     _HAS_NVML = _NVML_DEVICE_COUNT > 0
 except ImportError:
-    _nvml = None  # type: ignore[assignment]
+    _nvml = None
     _NVML_LIBRARY_OK = False
     _NVML_DEVICE_COUNT = 0
     _HAS_NVML = False
 except Exception:
-    _nvml = None  # type: ignore[assignment]
+    _nvml = None
     _NVML_LIBRARY_OK = True  # library loaded but init/query failed
     _NVML_DEVICE_COUNT = 0
     _HAS_NVML = False

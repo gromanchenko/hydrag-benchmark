@@ -55,3 +55,30 @@ class TestPython312Floor:
         assert "3.10" in changelog and "3.11" in changelog
         lowered = changelog.lower()
         assert "no longer supported" in lowered or "dropped" in lowered
+
+
+class TestStaticGatesExitZero:
+    """T-5061: operator decision 2026-09-21 withdrew the earlier
+    "no new errors" ratchet -- ruff check and mypy --strict must both
+    exit 0, no baseline accepted. This test locks that in as a
+    permanent regression guard (not just a one-time CI run)."""
+
+    def test_ruff_check_exits_zero(self) -> None:
+        import subprocess
+        import sys
+
+        result = subprocess.run(
+            [sys.executable, "-m", "ruff", "check", "src/", "tests/"],
+            cwd=REPO_ROOT, capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+
+    def test_mypy_strict_exits_zero(self) -> None:
+        import subprocess
+        import sys
+
+        result = subprocess.run(
+            [sys.executable, "-m", "mypy", "--strict", "src/hydrag_benchmark/"],
+            cwd=REPO_ROOT, capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr

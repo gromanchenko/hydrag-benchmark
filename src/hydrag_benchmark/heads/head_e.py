@@ -17,8 +17,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from hydrag import IndexedChunk
 from hydrag.enrichment import OllamaKeywordExtractor
+from hydrag.sqlite_store import IndexedChunk
 
 from .base import Chunk, ScoredChunk
 from .head_d import HeadD

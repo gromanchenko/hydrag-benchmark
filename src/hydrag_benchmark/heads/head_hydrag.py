@@ -22,8 +22,10 @@ from pathlib import Path
 from typing import Optional
 from urllib import request
 
-from hydrag import HydRAGConfig, IndexedChunk, SQLiteFTSStore, hydrag_search
+from hydrag.config import HydRAGConfig
+from hydrag.core import hydrag_search
 from hydrag.protocols import LLMProvider
+from hydrag.sqlite_store import IndexedChunk, SQLiteFTSStore
 
 from .base import Chunk, ScoredChunk
 from .head_ids import HEAD_ID_ALIASES

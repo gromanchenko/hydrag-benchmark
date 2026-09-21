@@ -543,7 +543,7 @@ def _cmd_surreal_microbench(args: argparse.Namespace) -> int:
     logging.basicConfig(level=logging.INFO, format="%(name)s %(message)s")
     log = logging.getLogger("surreal-microbench")
 
-    from hydrag import IndexedChunk
+    from hydrag.sqlite_store import IndexedChunk
     from hydrag.surreal_adapter import SurrealDBAdapter
 
     from .sys_sampler import PhaseSampler, available_backends

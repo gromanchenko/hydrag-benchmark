@@ -216,7 +216,8 @@ def _search_fn(strategy: str, collection: Any, n_results: int) -> Any:
             return results.get("documents", [[]])[0]
         return _baseline
 
-    from hydrag import HydRAGConfig, hydrag_search
+    from hydrag.config import HydRAGConfig
+    from hydrag.core import hydrag_search
 
     adapter = _ChromaDBAdapter(collection, n_results)
     cfg = HydRAGConfig()

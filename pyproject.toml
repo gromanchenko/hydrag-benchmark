@@ -89,3 +89,21 @@ python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+# Optional extras (gpu, metrics) and undeclared-but-used optional deps
+# (boto3, PyYAML): may or may not be installed depending on which
+# extras are active. ignore_missing_imports suppresses both
+# "import-not-found" (absent) and "import-untyped" (present, untyped)
+# consistently instead of scattered inline `# type: ignore` comments
+# whose "unused" status flips with the installed extras (T-5057
+# mirrors this for hydrag-core; T-5061 applies it here).
+module = [
+    "torch",
+    "transformers",
+    "boto3",
+    "yaml",
+    "pynvml",
+    "psutil",
+]
+ignore_missing_imports = true
